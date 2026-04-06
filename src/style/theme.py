@@ -1,0 +1,18 @@
+"""Project-wide visual constants and semantic color mappings."""
+
+from manim import *
+
+BG_TEXT = WHITE
+
+QUERY_EASY = GREEN_B
+QUERY_HARD = RED_B
+MODEL_WEAK = BLUE_B
+MODEL_STRONG = GOLD_B
+MODEL_MEDIUM = TEAL_B
+
+ROUTE_GOOD = GREEN_B
+ROUTE_BAD = RED_B
+
+TITLE_FONT_SIZE = 54
+SUBTITLE_FONT_SIZE = 30
+LABEL_FONT_SIZE = 24

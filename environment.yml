@@ -1,0 +1,7 @@
+name: omni-router-manim
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - manim
+  - black
