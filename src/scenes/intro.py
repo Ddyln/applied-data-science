@@ -14,7 +14,7 @@ def _query_model_setup():
     model_title = (
         Text("Available Models", font_size=LABEL_FONT_SIZE).to_edge(RIGHT).shift(UP * 2)
     )
-    queries = make_query_column(["Easy: x^2 - 1 = 0", "Hard: Build website"])
+    queries = make_query_column(["Easy: x^2 - 1 = 0", "Hard: Build Facebook!"])
     models = make_model_column(["Small", "Large"], ["weak", "strong"])
     return query_title, model_title, queries, models
 
@@ -24,24 +24,33 @@ def play_scene01_hook_too_many_llms(scene):
     # subtitle = Text("Fast vs Smart vs Expensive", font_size=32).next_to(title, DOWN)
 
     models = make_model_column(
-        ["Small Model", "Large Model"],
-        ["weak", "strong"],
-    ).shift(LEFT * 0.6)
-    final_model_center = models.get_center()
+        ["Model 1", "Model 2", "Model 3", "Model 4"],
+        ["weak", "medium", "strong", "strong"],
+    )
+    models.arrange(RIGHT, buff=0.45)
     models.move_to(ORIGIN)
 
-    queries = make_query_column(["Query A", "Query B", "Query C"]).shift(RIGHT * 0.4)
+    queries = make_query_column(["Query 1", "Query 2", "Query 3", "Query 4"]).shift(
+        LEFT * 0.3
+    )
+
 
     # scene.play(FadeIn(title))
     scene.play(staggered_fade_in(*models))
     scene.wait(5)
-    scene.play(models.animate.move_to(final_model_center))
+    
+    models.generate_target()
+    models.target.arrange(DOWN, buff=0.45)
+    models.target.to_edge(RIGHT, buff=0.9)
+    scene.play(MoveToTarget(models))
+
     scene.play(staggered_fade_in(*queries))
 
     flow_arrows = VGroup(
         connect(queries[0], models[0]),
         connect(queries[1], models[1]),
-        connect(queries[2], models[0]),
+        connect(queries[2], models[3]),
+        connect(queries[3], models[2]),
     )
     packets = VGroup(
         *[
@@ -82,9 +91,9 @@ def play_scene02_what_is_routing(scene):
     # scene.play(FadeIn(title), FadeIn(query_title), FadeIn(model_title))
     scene.play(FadeIn(query_title), FadeIn(model_title))
     scene.play(staggered_fade_in(*queries), staggered_fade_in(*models))
-    scene.wait(5)
+    scene.wait(8)
     scene.play(staggered_fade_in(*arrows))
-    scene.wait(5)
+    scene.wait(7.5)
 
 
 def play_scene03_greedy_fails(scene):
@@ -109,9 +118,17 @@ def play_scene03_greedy_fails(scene):
         "Only small model left for difficult task :(",
         font_size=26,
     ).to_edge(DOWN).shift(UP * 1.0)
+    weakness = Text(
+        "-> OmniRouter: constrained global optimization",
+        font_size=24,
+        # color=YELLOW,
+    )
+    weakness.to_edge(DOWN).shift(UP * 0.8)
 
     scene.play(FadeIn(title), FadeIn(subtitle))
-    scene.play(staggered_fade_in(*queries), staggered_fade_in(*models))
+    scene.play(staggered_fade_in(*models))
+    scene.wait(1)
+    scene.play(staggered_fade_in(queries[0]))
     scene.play(
         Indicate(queries[0]),
         # FadeIn(first_arrival),
@@ -123,22 +140,78 @@ def play_scene03_greedy_fails(scene):
     # scene.play(Indicate(bad_assign_easy, color=YELLOW))
     scene.play(FadeOut(easy_selection_note))
     scene.wait(0.5)
+    scene.play(staggered_fade_in(queries[1]))
     scene.play(Indicate(queries[1]), FadeIn(hard_selection_note))
     scene.wait(0.5)
     scene.play(FadeIn(bad_assign_hard))
-    # scene.play(FadeOut(easy_arrow_note))
-    scene.wait(0.8)
+    scene.wait(10)
+    # scene.play(
+    #     FadeOut(hard_selection_note),
+    #     FadeOut(queries),
+    #     FadeOut(models),
+    #     FadeOut(bad_assign_easy),
+    #     FadeOut(bad_assign_hard),
+    # )
+    scene.play(FadeOut(hard_selection_note), FadeIn(weakness))
+
+    # Persist visible objects so Scene 4 can continue without tearing down/rebuilding.
+    scene._scene3_state = {
+        "title": title,
+        "subtitle": subtitle,
+        "queries": queries,
+        "models": models,
+        "bad_assign_easy": bad_assign_easy,
+        "bad_assign_hard": bad_assign_hard,
+        "weakness": weakness,
+    }
+    scene.wait(5)
 
 
 def play_scene04_omnirouter_idea(scene):
-    title = Text("Optimize Globally", font_size=52).to_edge(UP)
-    queries = make_query_column(["Easy Query", "Hard Query"])
-    models = make_model_column(["Weak Model", "Strong Model"], ["weak", "strong"])
+    state = getattr(scene, "_scene3_state", None)
+    subtitle = None
+
+    if state:
+        title = state["title"]
+        subtitle = state["subtitle"]
+        queries = state["queries"]
+        models = state["models"]
+        bad_assign_easy = state["bad_assign_easy"]
+        bad_assign_hard = state["bad_assign_hard"]
+        weakness = state["weakness"]
+        scene.play(FadeOut(weakness))
+    else:
+        title = Text("Optimize Globally", font_size=52).to_edge(UP)
+        queries = make_query_column(["Easy Query", "Hard Query"])
+        models = make_model_column(["Weak Model", "Strong Model"], ["weak", "strong"])
+        bad_assign_easy = connect(queries[0], models[1], good=False)
+        bad_assign_hard = connect(queries[1], models[0], good=False)
+        scene.play(FadeIn(title))
+        scene.play(staggered_fade_in(*queries), staggered_fade_in(*models))
+        scene.play(FadeIn(bad_assign_easy), FadeIn(bad_assign_hard))
+
     good_assign_easy = connect(queries[0], models[0], good=True)
     good_assign_hard = connect(queries[1], models[1], good=True)
-    message = Text("Global optimization beats greedy", font_size=34).to_edge(DOWN)
-    scene.play(FadeIn(title))
-    scene.play(staggered_fade_in(*queries), staggered_fade_in(*models))
-    scene.play(FadeIn(good_assign_easy), FadeIn(good_assign_hard))
+    transition_note = Text(
+        "Plan jointly across all queries under constraints",
+        font_size=28,
+        # color=YELLOW,
+    ).to_edge(DOWN).shift(UP * 0.9)
+    message = Text("-> Joint assignment improves overall success", font_size=28).to_edge(DOWN)
+    punchline = Text("But... how does it actually work?!", font_size=42, color=WHITE)
+
+    # punchline.arrange(DOWN, buff=0).move_to(ORIGIN)
+    scene.wait(0.3)
+    scene.play(FadeIn(transition_note))
+    scene.play(
+        ReplacementTransform(bad_assign_easy, good_assign_easy),
+        ReplacementTransform(bad_assign_hard, good_assign_hard),
+    )
+    scene.wait(0.6)
     scene.play(FadeIn(message))
-    scene.wait(0.8)
+    scene.wait(2)
+    focus_group = VGroup(title, subtitle, queries, models, good_assign_easy, good_assign_hard, message, transition_note)
+    scene.play(focus_group.animate.set_opacity(0.22))
+    scene.play(FadeIn(punchline, scale=0.85))
+    scene.wait(3)
+    # scene.play(FadeOut(punchline_group), focus_group.animate.set_opacity(1.0))

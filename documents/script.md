@@ -57,16 +57,21 @@ Local decisions can lead to global failure
 ## Scene 4 — OmniRouter Idea
 
 ### Voiceover
-Instead, we consider all queries together.
+Instead, we plan assignments jointly across all queries.
+We optimize globally under constraints, not one query at a time.
 
 ### Visual
-- Assign:
-  - Easy → weak model  
-  - Hard → strong model  
-- Both succeed  
+1. Start from the greedy (bad) assignment from Scene 3:
+  - Easy → strong
+  - Hard → weak
+2. Show a transition note: "Plan jointly across all queries under constraints"
+3. Transform arrows into OmniRouter assignment:
+  - Easy → weak
+  - Hard → strong
+4. Final text: "Joint assignment improves overall success"
 
 ### Key Message
-Global optimization beats greedy decisions  
+Global constrained optimization beats greedy local decisions
 
 ---
 
@@ -74,6 +79,7 @@ Global optimization beats greedy decisions
 
 ### Voiceover
 We formalize routing as a constrained optimization problem.
+Now read this in plain language, one piece at a time.
 
 ### Definitions
 
@@ -101,9 +107,16 @@ $$
 \min_{x} \sum_{i=1}^{N} \sum_{j=1}^{M} c_{i,j} x_{i,j}
 $$
 
+Meaning: minimize total routing cost.
+
 ---
 
 ### Constraints
+
+Reveal order in video:
+1. Assignment first: one model per query
+2. Capacity next: each model has limited concurrency
+3. Quality last: global success target must be met
 
 Quality constraint:
 
@@ -130,6 +143,9 @@ We minimize cost while ensuring:
 - high performance  
 - limited capacity  
 - exactly one model per query  
+
+Final transition line:
+"Great, but where do c_ij and a_ij come from?"
 
 ---
 
