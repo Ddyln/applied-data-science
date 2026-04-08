@@ -35,10 +35,10 @@ class OmniRouter(Scene):
         steps = (
             # play_scene01_hook_too_many_llms,
             # play_scene02_what_is_routing,
-            play_scene03_greedy_fails,
-            play_scene04_omnirouter_idea,
+            # play_scene03_greedy_fails,
+            # play_scene04_omnirouter_idea,
             play_scene05_problem_formulation,
-            # play_scene06_two_stage_framework,
+            play_scene06_two_stage_framework,
             # play_scene07_embeddings,
             # play_scene08_capability_prediction,
             # play_scene09_length_prediction,
