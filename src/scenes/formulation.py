@@ -17,10 +17,12 @@ def play_scene05_problem_formulation(scene):
     intro_x = MathTex(
         r"x_{ij}\in\{0,1\}:\ \text{assign query }i\text{ to model }j"
     ).scale(0.74)
-    intro_a = MathTex(r"a_{ij}\in[0,1]:\ \text{success probability/capability}").scale(0.74)
-    intro_c = MathTex(r"c_{ij}:\ \text{money cost of using model }j\text{ for query }i").scale(
+    intro_a = MathTex(r"a_{ij}\in[0,1]:\ \text{success probability/capability}").scale(
         0.74
     )
+    intro_c = MathTex(
+        r"c_{ij}:\ \text{money cost of using model }j\text{ for query }i"
+    ).scale(0.74)
     intro_block = VGroup(
         intro_n,
         intro_m,
@@ -105,96 +107,301 @@ def play_scene05_problem_formulation(scene):
 
 
 def play_scene06_two_stage_framework(scene):
-    objective = omnirouter.objective().scale(0.9).to_edge(UP, buff=0.8)
-    unknown_prompt = Text(
-        "At query time,", font_size=30, color=RED_C
-    ).next_to(objective, DOWN, buff=0.45)
-
-    unknown_math = VGroup(
-        Text("we do not know", font_size=26, color=RED_C),
-        MathTex(r"c_{ij}", color=RED_C).scale(1.15),
-        Text("or", font_size=26, color=RED_C),
-        MathTex(r"a_{ij}", color=RED_C).scale(1.15),
-    ).arrange(RIGHT, buff=0.18)
-    unknown_math.next_to(unknown_prompt, DOWN, buff=0.22)
-
-    cost_term = MathTex(r"c_{ij}", color=RED_C).scale(1.2)
-    cap_term = MathTex(r"a_{ij}", color=RED_C).scale(1.2)
-    q1 = MathTex(r"?").scale(1.2)
-    q2 = MathTex(r"?").scale(1.2)
-    unknown_cards = VGroup(
-        VGroup(cost_term, q1).arrange(RIGHT, buff=0.18),
-        VGroup(cap_term, q2).arrange(RIGHT, buff=0.18),
-    ).arrange(DOWN, buff=0.35)
-    unknown_cards.next_to(unknown_math, DOWN, buff=0.35)
-
+    # ── Objective label (top) ──────────────────────────────────────────────
+    objective = omnirouter.objective().scale(0.76).to_edge(UP, buff=0.42)
     scene.play(FadeIn(objective))
-    scene.play(FadeIn(unknown_prompt))
-    scene.play(FadeIn(unknown_math))
-    scene.play(LaggedStart(FadeIn(unknown_cards[0]), FadeIn(unknown_cards[1]), lag_ratio=0.25))
-    scene.play(Indicate(unknown_cards[0], color=RED_C), Indicate(unknown_cards[1], color=RED_C))
-    scene.wait(0.8)
 
-    scene.play(
-        FadeOut(unknown_cards),
-        FadeOut(unknown_math),
-        FadeOut(unknown_prompt),
-        objective.animate.scale(0.6).to_corner(UL).shift(RIGHT * 0.4 + DOWN * 0.3),
+    # ══════════════════════════════════════════════════════════════════════
+    #  COORDINATE SYSTEM  (1920×1080 → 14.22 × 8.0 Manim units)
+    #  Safe x range: -7.11 … +7.11   Safe y range: -4.0 … +4.0
+    # ══════════════════════════════════════════════════════════════════════
+    Y_C = -0.6  # vertical centre of the whole diagram
+
+    # ── INPUT BOXES ───────────────────────────────────────────────────────
+    def small_box(label, w=1.85, h=0.62):
+        b = RoundedRectangle(width=w, height=h, corner_radius=0.10, color=WHITE)
+        t = Text(label, font_size=19, line_spacing=0.85).move_to(b)
+        return VGroup(b, t)
+
+    q_card = small_box("Queries", w=1.55, h=0.56)
+    q_card[1].scale(0.92)
+    llm_card = small_box("LLM\nDescriptions", w=1.55, h=0.64)
+    llm_card[1].scale(0.86)
+    input_col = VGroup(q_card, llm_card).arrange(DOWN, buff=0.34)
+    input_col.move_to([-6.05, Y_C, 0])
+
+    # ── EMBEDDING ENCODER ─────────────────────────────────────────────────
+    enc_box = RoundedRectangle(
+        width=1.45, height=1.60, corner_radius=0.12, color=GREEN_C
+    )
+    enc_text = Text("Embedding\nEncoder", font_size=17, line_spacing=0.9).move_to(
+        enc_box
+    )
+    enc_group = VGroup(enc_box, enc_text)
+    enc_group.move_to([-3.85, Y_C, 0])
+
+    arr_q_enc = Arrow(
+        q_card.get_right(), enc_box.get_left() + UP * 0.32, buff=0.06, stroke_width=3
+    )
+    arr_l_enc = Arrow(
+        llm_card.get_right(),
+        enc_box.get_left() + DOWN * 0.32,
+        buff=0.06,
+        stroke_width=3,
     )
 
-    frame = RoundedRectangle(width=13.4, height=3.6, corner_radius=0.2)
-    frame.move_to(DOWN * 0.35)
-
-    query_box = RoundedRectangle(width=2.5, height=1.0, corner_radius=0.12, color=WHITE)
-    predictor_box = RoundedRectangle(width=2.9, height=1.2, corner_radius=0.12, color=BLUE_B)
-    optimizer_box = RoundedRectangle(width=2.9, height=1.2, corner_radius=0.12, color=GREEN_B)
-    select_box = RoundedRectangle(width=3.0, height=1.0, corner_radius=0.12, color=WHITE)
-    stage_row = VGroup(query_box, predictor_box, optimizer_box, select_box).arrange(
-        RIGHT, buff=0.52
+    # ══════════════════════════════════════════════════════════════════════
+    #  PREDICTOR dashed frame
+    #  Left edge overlaps the encoder (starts at x ≈ -3.1, encoder centre -4.05)
+    # ══════════════════════════════════════════════════════════════════════
+    PRED_W = 7.25
+    PRED_H = 4.00
+    PRED_CX = -1.25  # centre x  →  left edge = -1.25 - 3.625 = -4.875 (covers encoder)
+    pred_rect = RoundedRectangle(
+        width=PRED_W, height=PRED_H, corner_radius=0.18, color=GREY_B
     )
-    stage_row.move_to(frame)
+    pred_frame = DashedVMobject(pred_rect, num_dashes=64)
+    pred_frame.move_to([PRED_CX, Y_C, 0])
+    pred_label = Text("Predictor", font_size=20, color=GREY_B).next_to(
+        pred_frame, DOWN, buff=0.10
+    )
 
-    query_text = Text("Queries", font_size=24).move_to(query_box)
-    predictor_text = Text("Predictor", font_size=24).move_to(predictor_box)
-    optimizer_text = Text("Optimizer", font_size=24).move_to(optimizer_box)
-    select_text = Text("Model Selection", font_size=24).move_to(select_box)
-    labels = VGroup(query_text, predictor_text, optimizer_text, select_text)
+    pfc = pred_frame.get_center()  # = [PRED_CX, Y_C, 0]
 
-    a1 = Arrow(query_box.get_right(), predictor_box.get_left(), buff=0.08, stroke_width=4)
-    a2 = Arrow(predictor_box.get_right(), optimizer_box.get_left(), buff=0.08, stroke_width=4)
-    a3 = Arrow(optimizer_box.get_right(), select_box.get_left(), buff=0.08, stroke_width=4)
-    edges = VGroup(a1, a2, a3)
+    # Branch y-levels: 4 equal lanes inside the predictor rectangle
+    lane_top = Y_C + 0.90
+    lane_2 = Y_C + 0.30
+    lane_3 = Y_C - 0.30
+    lane_bot = Y_C - 0.90
 
-    est_cost = MathTex(r"\hat{c}_{ij}", color=BLUE_B).scale(0.9).next_to(predictor_box, UP, buff=0.16).shift(RIGHT * 0.5)
-    est_cap = MathTex(r"\hat{a}_{ij}", color=BLUE_B).scale(0.9).next_to(est_cost, RIGHT, buff=0.25).shift(RIGHT * 0.5)
-    est_group = VGroup(est_cost, est_cap)
-    est_callout = Arrow(
-        a2.get_center() + UP * 0.02,
-        est_group.get_bottom() + DOWN * 0.05,
+    # ── Small grid icons (embedding columns) beside encoder ───────────────
+    def mini_grid(rows=4, cols=2, cell=0.13, color=GREY_A):
+        g = VGroup()
+        for r in range(rows):
+            for c in range(cols):
+                sq = Square(
+                    side_length=cell, color=color, fill_opacity=0.35, stroke_width=0.8
+                )
+                sq.move_to([c * (cell + 0.02), -r * (cell + 0.02), 0])
+                g.add(sq)
+        return g
+
+    grid_top = mini_grid().next_to(enc_box, RIGHT, buff=0.18).shift(UP * 0.62)
+    grid_bot = mini_grid().next_to(enc_box, RIGHT, buff=0.18).shift(DOWN * 0.62)
+    eq_top_mark = MathTex(r"E_q", font_size=22).next_to(grid_top, UP, buff=0.08)
+    el_label = MathTex(r"E_l", font_size=22).next_to(grid_bot, DOWN, buff=0.08)
+    grids = VGroup(grid_top, grid_bot, eq_top_mark, el_label)
+
+    # Encoder right-edge x (after grids; use grid right edge as fan-out x)
+    fan_x = grid_top.get_right()[0] + 0.08
+
+    # ── Arrow helper: elbow from fan_x at enc y_c → branch y → target ────
+    def elbow_arrow(branch_y, target_left_pt, stroke=3):
+        start = np.array([fan_x, Y_C, 0])
+        bend = np.array([fan_x, branch_y, 0])
+        end = np.array([target_left_pt[0], branch_y, 0])
+        line = VMobject(stroke_width=stroke, color=WHITE)
+        line.set_points_as_corners([start, bend, end])
+        tip = Arrow(
+            end + LEFT * 0.001,
+            end,
+            buff=0.0,
+            stroke_width=stroke,
+            max_tip_length_to_length_ratio=0.3,
+        )
+        return VGroup(line, tip)
+
+    # ── TOP branch: E_q → Vector DB ──────────────────────────────────────
+    vdb_box = RoundedRectangle(
+        width=1.50, height=0.50, corner_radius=0.10, color=BLUE_B
+    )
+    vdb_text = Text("Vector DB", font_size=15).move_to(vdb_box)
+    vdb_group = VGroup(vdb_box, vdb_text)
+    vdb_group.move_to([pfc[0] + 0.02, lane_top + 0.36, 0])
+    vdb_above = Text("Average Top K Scores", font_size=13, color=GREY_A).next_to(
+        vdb_group, UP, buff=0.07
+    )
+
+    eq_top_lbl = (
+        MathTex(r"E_q", font_size=22)
+        .next_to(vdb_group, LEFT, buff=0.50)
+        .shift(UP * 0.28)
+    )
+    arr_top = Arrow(
+        grid_top.get_right(),
+        vdb_box.get_left(),
         buff=0.08,
-        stroke_width=4,
-        color=YELLOW,
+        stroke_width=3,
     )
 
-    packet = Dot(radius=0.07, color=YELLOW).move_to(a1.get_start())
-    bridge_1 = ArcBetweenPoints(a1.get_end(), a2.get_start(), angle=PI / 6)
-    bridge_2 = ArcBetweenPoints(a2.get_end(), a3.get_start(), angle=PI / 6)
+    # ── MID branch: E_q⊙E_l → Sigmoid → a circles ───────────────────────
+    sig_box = RoundedRectangle(
+        width=1.40, height=0.54, corner_radius=0.09, color=ORANGE
+    )
+    sig_text = Text("Sigmoid", font_size=17).move_to(sig_box)
+    sig_group = VGroup(sig_box, sig_text)
+    sig_group.move_to([pfc[0] + 0.10, grid_top.get_center()[1], 0])
 
-    scene.play(FadeIn(frame, shift=UP * 0.15))
-    scene.play(FadeIn(query_box), FadeIn(query_text))
+    eq_mid_lbl = MathTex(r"E_q \odot E_l", font_size=20).next_to(
+        sig_group, LEFT, buff=0.40
+    )
 
-    scene.play(FadeIn(predictor_box), FadeIn(predictor_text), GrowArrow(a1))
-    scene.add(packet)
-    scene.play(MoveAlongPath(packet, a1), run_time=0.8)
-    scene.play(MoveAlongPath(packet, bridge_1), run_time=0.45)
+    a_circ = VGroup(
+        *[
+            VGroup(
+                Circle(radius=0.20, color=BLUE_B, fill_opacity=0.25),
+                MathTex(r"a", font_size=18).move_to(ORIGIN),
+            )
+            for _ in range(3)
+        ]
+    ).arrange(RIGHT, buff=0.10)
+    a_row = VGroup(a_circ, MathTex(r"\cdots", font_size=22)).arrange(RIGHT, buff=0.12)
+    a_row.next_to(sig_group, RIGHT, buff=0.50)
+    a_box = SurroundingRectangle(
+        a_row, color=BLUE_B, buff=0.07, corner_radius=0.08, stroke_width=2.2
+    )
 
-    scene.play(FadeIn(optimizer_box), FadeIn(optimizer_text), GrowArrow(a2))
-    scene.play(GrowArrow(est_callout), FadeIn(est_group))
-    scene.play(MoveAlongPath(packet, a2), run_time=0.8)
-    scene.play(MoveAlongPath(packet, bridge_2), run_time=0.45)
+    arr_sig_a = Arrow(
+        sig_group.get_right(), a_row.get_left(), buff=0.10, stroke_width=3
+    )
 
-    scene.play(FadeIn(select_box), FadeIn(select_text), GrowArrow(a3))
-    scene.play(MoveAlongPath(packet, a3), run_time=0.8)
+    # ── BOT branch: E_q⊕E_l → Softmax → c circles ───────────────────────
+    sft_box = RoundedRectangle(
+        width=1.40, height=0.54, corner_radius=0.09, color=TEAL_B
+    )
+    sft_text = Text("Softmax", font_size=17).move_to(sft_box)
+    sft_group = VGroup(sft_box, sft_text)
+    sft_group.move_to([pfc[0] + 0.10, grid_bot.get_center()[1], 0])
 
+    eq_bot_lbl = MathTex(r"E_q \oplus E_l", font_size=20).next_to(
+        sft_group, LEFT, buff=0.40
+    )
 
-    scene.wait(1.2)
+    c_circ = VGroup(
+        *[
+            VGroup(
+                Circle(radius=0.20, color=GREEN_B, fill_opacity=0.25),
+                MathTex(r"c", font_size=18).move_to(ORIGIN),
+            )
+            for _ in range(3)
+        ]
+    ).arrange(RIGHT, buff=0.10)
+    c_row = VGroup(c_circ, MathTex(r"\cdots", font_size=22)).arrange(RIGHT, buff=0.12)
+    c_row.next_to(sft_group, RIGHT, buff=0.50)
+    c_box = SurroundingRectangle(
+        c_row, color=GREEN_B, buff=0.07, corner_radius=0.08, stroke_width=2.2
+    )
+
+    arr_sft_c = Arrow(
+        sft_group.get_right(), c_row.get_left(), buff=0.10, stroke_width=3
+    )
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  OPTIMIZER dashed frame
+    #  Left edge just right of predictor right edge
+    #  Predictor right = PRED_CX + PRED_W/2 = -1.35 + 3.55 = +2.20
+    #  Optimizer right must stay < 7.11
+    # ══════════════════════════════════════════════════════════════════════
+    OPT_W = 3.30
+    OPT_CX = (PRED_CX + PRED_W / 2) + 0.35 + OPT_W / 2  # gap 0.35
+    opt_rect = RoundedRectangle(
+        width=OPT_W, height=PRED_H, corner_radius=0.18, color=GREY_B
+    )
+    opt_frame = DashedVMobject(opt_rect, num_dashes=50)
+    opt_frame.move_to([OPT_CX, Y_C, 0])
+    opt_label = Text("Optimizer", font_size=20, color=GREY_B).next_to(
+        opt_frame, DOWN, buff=0.10
+    )
+
+    ofc = opt_frame.get_center()
+
+    opt_math = MathTex(
+        r"\min\!\left(\sum_{i=1}^{N}\sum_{j=1}^{M} x_{i,j}C_{i,j}\right)\!,\ \text{s.t.}\ \ldots",
+        font_size=16,
+    ).move_to(ofc + UP * 1.12)
+
+    lagrange_lbl = Text("+Lagrange Multipliers", font_size=14, color=YELLOW_C)
+    lagrange_lbl.next_to(opt_math, DOWN, buff=0.18)
+
+    dual_math = MathTex(r"L(x,\lambda_1,\lambda_{2,j},\mu_i)", font_size=16)
+    dual_math.next_to(lagrange_lbl, DOWN, buff=0.16)
+
+    dual_text = Text("Dual Optimization", font_size=14, color=GREY_A)
+    dual_text.next_to(dual_math, DOWN, buff=0.12)
+
+    model_box = RoundedRectangle(
+        width=2.20, height=0.58, corner_radius=0.10, color=GOLD_B
+    )
+    model_text = Text("Model Indexes", font_size=18).move_to(model_box)
+    model_group = VGroup(model_box, model_text).move_to(ofc + DOWN * 1.22)
+
+    arr_pred_opt = Arrow(
+        pred_frame.get_right(), opt_frame.get_left(), buff=0.08, stroke_width=4
+    )
+    arr_dual_mdl = Arrow(
+        dual_text.get_bottom(), model_group.get_top(), buff=0.08, stroke_width=3
+    )
+
+    # estimated labels on bridge arrow
+    est_c = MathTex(r"\hat{c}_{ij}", color=BLUE_B, font_size=26).next_to(
+        arr_pred_opt, UP, buff=0.10
+    )
+    est_a = MathTex(r"\hat{a}_{ij}", color=BLUE_B, font_size=26).next_to(
+        est_c, RIGHT, buff=0.18
+    )
+    vdb_to_a = Arrow(
+        vdb_box.get_bottom(), a_box.get_top(), buff=0.10, stroke_width=3, color=BLUE_B
+    )
+    vdb_to_c = Arrow(
+        vdb_box.get_bottom(), c_box.get_top(), buff=0.10, stroke_width=3, color=GREEN_B
+    )
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ANIMATE
+    # ══════════════════════════════════════════════════════════════════════
+    # 1. Inputs
+    scene.play(FadeIn(q_card), FadeIn(llm_card))
+    scene.wait(0.2)
+
+    # 2. Predictor frame (drawn behind content already placed)
+    scene.play(Create(pred_frame), FadeIn(pred_label))
+
+    # 3. Encoder + grids
+    scene.play(GrowArrow(arr_q_enc), GrowArrow(arr_l_enc))
+    scene.play(FadeIn(enc_group))
+    scene.play(FadeIn(grids))
+    scene.wait(0.2)
+
+    # 4. Top branch – Vector DB
+    scene.play(FadeIn(eq_top_lbl))
+    scene.play(Create(arr_top))
+    scene.play(FadeIn(vdb_group), FadeIn(vdb_above))
+
+    # 5. Mid branch – Sigmoid
+    scene.play(FadeIn(eq_mid_lbl))
+    scene.play(FadeIn(sig_group))
+    scene.play(FadeIn(a_box), GrowArrow(arr_sig_a), FadeIn(a_row))
+
+    # 6. Bot branch – Softmax
+    scene.play(FadeIn(eq_bot_lbl))
+    scene.play(FadeIn(sft_group))
+    scene.play(FadeIn(c_box), GrowArrow(arr_sft_c), FadeIn(c_row))
+    scene.wait(0.3)
+
+    # 7. Predictor → Optimizer arrow + labels
+    scene.play(GrowArrow(arr_pred_opt))
+    scene.play(FadeIn(est_c), FadeIn(est_a))
+
+    # 8. Optimizer
+    scene.play(Create(opt_frame), FadeIn(opt_label))
+    scene.play(FadeIn(opt_math))
+    scene.play(FadeIn(lagrange_lbl))
+    scene.play(FadeIn(dual_math), FadeIn(dual_text))
+    scene.play(GrowArrow(arr_dual_mdl))
+    scene.play(FadeIn(model_group))
+
+    scene.play(GrowArrow(vdb_to_a), GrowArrow(vdb_to_c))
+
+    # 9. Pulse
+    scene.play(Indicate(est_c, color=BLUE_B), Indicate(est_a, color=BLUE_B))
+    scene.wait(1.5)

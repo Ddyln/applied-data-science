@@ -28,8 +28,9 @@ from scenes.predictor import (
 )
 from scenes.results import play_scene17_results, play_scene18_conclusion
 
-
 KEEP_STAGE_AFTER_STEPS = [play_scene03_greedy_fails]
+
+
 class OmniRouter(Scene):
     def construct(self):
         steps = (
@@ -37,7 +38,7 @@ class OmniRouter(Scene):
             # play_scene02_what_is_routing,
             # play_scene03_greedy_fails,
             # play_scene04_omnirouter_idea,
-            play_scene05_problem_formulation,
+            # play_scene05_problem_formulation,
             play_scene06_two_stage_framework,
             # play_scene07_embeddings,
             # play_scene08_capability_prediction,
@@ -56,9 +57,7 @@ class OmniRouter(Scene):
         for idx, step in enumerate(steps):
             step(self)
 
-            keep_stage_for_next = (
-                step in KEEP_STAGE_AFTER_STEPS
-            )
+            keep_stage_for_next = step in KEEP_STAGE_AFTER_STEPS
             if not keep_stage_for_next:
                 self._reset_stage()
 

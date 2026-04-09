@@ -34,11 +34,10 @@ def play_scene01_hook_too_many_llms(scene):
         LEFT * 0.3
     )
 
-
     # scene.play(FadeIn(title))
     scene.play(staggered_fade_in(*models))
     scene.wait(5)
-    
+
     models.generate_target()
     models.target.arrange(DOWN, buff=0.45)
     models.target.to_edge(RIGHT, buff=0.9)
@@ -110,14 +109,22 @@ def play_scene03_greedy_fails(scene):
         .next_to(bad_assign_easy, UP)
         .shift(RIGHT * 0.4)
     )
-    easy_selection_note = Text(
-        "Greedy picks the model with higher success chance",
-        font_size=26,
-    ).to_edge(DOWN).shift(UP * 1.0)
-    hard_selection_note = Text(
-        "Only small model left for difficult task :(",
-        font_size=26,
-    ).to_edge(DOWN).shift(UP * 1.0)
+    easy_selection_note = (
+        Text(
+            "Greedy picks the model with higher success chance",
+            font_size=26,
+        )
+        .to_edge(DOWN)
+        .shift(UP * 1.0)
+    )
+    hard_selection_note = (
+        Text(
+            "Only small model left for difficult task :(",
+            font_size=26,
+        )
+        .to_edge(DOWN)
+        .shift(UP * 1.0)
+    )
     weakness = Text(
         "-> OmniRouter: constrained global optimization",
         font_size=24,
@@ -192,12 +199,18 @@ def play_scene04_omnirouter_idea(scene):
 
     good_assign_easy = connect(queries[0], models[0], good=True)
     good_assign_hard = connect(queries[1], models[1], good=True)
-    transition_note = Text(
-        "Plan jointly across all queries under constraints",
-        font_size=28,
-        # color=YELLOW,
-    ).to_edge(DOWN).shift(UP * 0.9)
-    message = Text("-> Joint assignment improves overall success", font_size=28).to_edge(DOWN)
+    transition_note = (
+        Text(
+            "Plan jointly across all queries under constraints",
+            font_size=28,
+            # color=YELLOW,
+        )
+        .to_edge(DOWN)
+        .shift(UP * 0.9)
+    )
+    message = Text(
+        "-> Joint assignment improves overall success", font_size=28
+    ).to_edge(DOWN)
     punchline = Text("But... how does it actually work?!", font_size=42, color=WHITE)
 
     # punchline.arrange(DOWN, buff=0).move_to(ORIGIN)
@@ -210,7 +223,16 @@ def play_scene04_omnirouter_idea(scene):
     scene.wait(0.6)
     scene.play(FadeIn(message))
     scene.wait(2)
-    focus_group = VGroup(title, subtitle, queries, models, good_assign_easy, good_assign_hard, message, transition_note)
+    focus_group = VGroup(
+        title,
+        subtitle,
+        queries,
+        models,
+        good_assign_easy,
+        good_assign_hard,
+        message,
+        transition_note,
+    )
     scene.play(focus_group.animate.set_opacity(0.22))
     scene.play(FadeIn(punchline, scale=0.85))
     scene.wait(3)
