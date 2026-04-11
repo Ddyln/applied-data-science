@@ -530,7 +530,7 @@ def play_scene09_length_prediction(scene):
 
 def play_scene10_retrieval_augmentation(scene):
     # ══════════════════════════════════════════════════════════════════════
-    #  ACT 1  (0s – 12s): Title + Vector space with radar scan
+    #  ACT 1: Title + Vector space with radar scan
     # ══════════════════════════════════════════════════════════════════════
     title = Text("Retrieval Augmentation", font_size=42).to_edge(UP, buff=0.45)
     scene.play(FadeIn(title, shift=DOWN * 0.2))
@@ -584,7 +584,7 @@ def play_scene10_retrieval_augmentation(scene):
         scene.play(ShowPassingFlash(ripple, time_width=0.6), run_time=0.55)
 
     # ══════════════════════════════════════════════════════════════════════
-    #  ACT 2  (12s – 24s): Top-K highlight + similarity lines
+    #  ACT 2: Top-K highlight + similarity lines
     # ══════════════════════════════════════════════════════════════════════
     scene.play(
         *[d.animate.set_color(TEAL_A).scale(1.15) for d in hist_dots], run_time=0.5
@@ -663,7 +663,7 @@ def play_scene10_retrieval_augmentation(scene):
     scene.wait(0.6)
 
     # ══════════════════════════════════════════════════════════════════════
-    #  ACT 3  (35s – 50s): Fade space → two weighted-average formulas
+    #  ACT 3: Fade space → two weighted-average formulas
     # ══════════════════════════════════════════════════════════════════════
     scene.play(
         bg_dots.animate.set_opacity(0.10),
@@ -735,7 +735,7 @@ def play_scene10_retrieval_augmentation(scene):
 
 def play_scene11_fusion(scene):
     # ══════════════════════════════════════════════════════════════════════
-    #  ACT 1  (0s – 12s): Title + two-column recap
+    #  ACT 1: Title + two-column recap
     # ══════════════════════════════════════════════════════════════════════
     title = Text("Fusion", font_size=42).to_edge(UP, buff=0.45)
     scene.play(FadeIn(title, shift=DOWN * 0.2))
@@ -964,22 +964,6 @@ def play_scene11_fusion(scene):
     scene.wait(1)
 
     # Highlight tp_j and pull out price table
-    eq_c[4].set_color(GOLD)
-    eq_c[6].set_color(GOLD)
-    eq_c[11].set_color(GOLD)
-    eq_c[13].set_color(GOLD)
-    scene.play(
-        Indicate(
-            VGroup(
-                eq_c[4],
-                eq_c[6],
-                eq_c[11],
-                eq_c[13],
-            ),
-            color=GOLD,
-        ),
-    )
-
     price_rows = VGroup(
         Text("GPT-4o:   $10 / 1M tokens", font_size=16, color=GREY_A),
         Text("Claude 3: $ 3 / 1M tokens", font_size=16, color=GREY_A),
@@ -1010,121 +994,155 @@ def play_scene11_fusion(scene):
         max_tip_length_to_length_ratio=0.22,
     )
     scene.play(
+        eq_c[4].animate.set_color(GOLD),
+        eq_c[6].animate.set_color(GOLD),
+        eq_c[11].animate.set_color(GOLD),
+        eq_c[13].animate.set_color(GOLD),
         GrowArrow(tp_arrow_1),
         GrowArrow(tp_arrow_2),
         FadeIn(price_widget, shift=UP * 0.12),
     )
-    scene.wait(0.5)
+    scene.wait(1)
+    scene.play(
+        FadeOut(
+            VGroup(
+                tp_arrow_1,
+                tp_arrow_2,
+                price_widget,
+            )
+        ),
+    )
 
-    # # Delta slider
-    # delta = ValueTracker(0.5)
-    # SLIDER2_Y = price_widget.get_bottom()[1] - 0.55
-    # slider_c = NumberLine(
-    #     x_range=[0, 1, 1], length=5.5, include_numbers=False, color=GREY_B
-    # )
-    # slider_c.move_to([0, SLIDER2_Y, 0])
+    # Delta slider
+    delta = ValueTracker(0.5)
+    slider_c = NumberLine(
+        x_range=[0, 1, 1], length=5.5, include_numbers=False, color=GREY_B
+    )
+    slider_c.move_to([0, SLIDER_Y, 0])
 
-    # pred_end_lbl2 = Text("Prediction", font_size=15, color=BLUE_A).next_to(
-    #     slider_c.get_left(), DOWN, buff=0.12
-    # )
-    # ret_end_lbl2 = Text("Retrieval", font_size=15, color=TEAL_A).next_to(
-    #     slider_c.get_right(), DOWN, buff=0.12
-    # )
+    pred_end_lbl2 = Text("Prediction", font_size=15, color=BLUE_A).next_to(
+        slider_c.get_left(), DOWN, buff=0.12
+    )
+    ret_end_lbl2 = Text("Retrieval", font_size=15, color=TEAL_A).next_to(
+        slider_c.get_right(), DOWN, buff=0.12
+    )
 
-    # delta_dot = always_redraw(
-    #     lambda: Dot(slider_c.n2p(delta.get_value()), radius=0.13, color=ORANGE)
-    # )
-    # delta_lbl = always_redraw(
-    #     lambda: MathTex(
-    #         rf"\delta = {delta.get_value():.2f}", font_size=24, color=ORANGE
-    #     ).next_to(slider_c, UP, buff=0.18)
-    # )
+    delta_dot = always_redraw(
+        lambda: Dot(slider_c.n2p(delta.get_value()), radius=0.13, color=ORANGE)
+    )
+    delta_lbl = always_redraw(
+        lambda: MathTex(
+            rf"\delta = {delta.get_value():.2f}", font_size=24, color=ORANGE
+        ).next_to(slider_c, UP, buff=0.18)
+    )
 
-    # scene.play(
-    #     Create(slider_c),
-    #     FadeIn(pred_end_lbl2),
-    #     FadeIn(ret_end_lbl2),
-    #     FadeIn(delta_dot),
-    #     FadeIn(delta_lbl),
-    #     run_time=0.7,
-    # )
+    scene.play(
+        Create(slider_c),
+        FadeIn(pred_end_lbl2),
+        FadeIn(ret_end_lbl2),
+        FadeIn(delta_dot),
+        FadeIn(delta_lbl),
+        run_time=0.7,
+    )
+    scene.play(
+        Indicate(
+            VGroup(
+                delta_lbl,
+                eq_c[2],
+                eq_c[8],
+            )
+        )
+    )
+    surround_delta_lbl_rect = SurroundingRectangle(delta_lbl, color=WHITE)
+    intro_delta_box = text_box("Learnable Parameter", w=3.4).shift(RIGHT + UP * 2)
+    intro_delta_line = DashedLine(
+        delta_lbl.get_top(), intro_delta_box.get_bottom(), buff=0.1
+    )
+    scene.play(
+        FadeIn(
+            VGroup(
+                intro_delta_box,
+                intro_delta_line,
+                surround_delta_lbl_rect,
+            )
+        )
+    )
+    scene.wait(2)
+    scene.play(
+        FadeOut(
+            VGroup(
+                intro_delta_box,
+                intro_delta_line,
+                surround_delta_lbl_rect,
+            )
+        )
+    )
 
-    # scene.play(delta.animate.set_value(0.80), run_time=1.0)
-    # scene.play(delta.animate.set_value(0.30), run_time=1.0)
-    # scene.play(delta.animate.set_value(0.55), run_time=0.7)
-    # scene.wait(0.3)
+    scene.play(delta.animate.set_value(0.80), run_time=1.0)
+    scene.play(delta.animate.set_value(0.30), run_time=1.0)
+    scene.play(delta.animate.set_value(0.55), run_time=0.7)
+    scene.wait(0.3)
 
-    # # Collapse to Final Cost box
-    # final_c_box = text_box(
-    #     r"c_{i,j}  (Final Cost)", box_color=GOLD, text_color=WHITE, font_size=21, w=3.0
-    # )
-    # final_c_box.next_to(slider_c, DOWN, buff=0.45)
-    # scene.play(FadeIn(final_c_box, shift=UP * 0.12))
-    # scene.wait(0.4)
+    scene.play(
+        Flash(eq_c[0].get_center(), color=GREEN_A, flash_radius=0.5, line_length=0.18)
+    )
 
-    # # ══════════════════════════════════════════════════════════════════════
-    # #  ACT 4  (40s – 45s): Zoom out to two glowing output boxes → To Optimizer
-    # # ══════════════════════════════════════════════════════════════════════
-    # scene.play(
-    #     FadeOut(
-    #         VGroup(
-    #             eq_c,
-    #             tp_arrow,
-    #             price_widget,
-    #             slider_c,
-    #             delta_dot,
-    #             delta_lbl,
-    #             pred_end_lbl2,
-    #             ret_end_lbl2,
-    #             pred_l,
-    #             ret_l,
-    #             nn_group,
-    #             db_group,
-    #             vs_lbl,
-    #         )
-    #     ),
-    #     run_time=0.7,
-    # )
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 4: Zoom out to two glowing output boxes → To Optimizer
+    # ══════════════════════════════════════════════════════════════════════
+    scene.play(
+        FadeOut(
+            VGroup(
+                eq_c,
+                slider_c,
+                delta_dot,
+                delta_lbl,
+                pred_end_lbl2,
+                ret_end_lbl2,
+                pred_l,
+                ret_l,
+                nn_group,
+                db_group,
+                vs_lbl,
+            )
+        ),
+        run_time=0.7,
+    )
 
-    # # Re-create the two output boxes centred
-    # box_a = text_box(
-    #     "a_{i,j}   Final Capability", box_color=GREEN_D, font_size=22, w=3.5, h=0.85
-    # )
-    # box_c = text_box(
-    #     "c_{i,j}   Final Cost", box_color=GOLD, font_size=22, w=3.5, h=0.85
-    # )
-    # outputs = VGroup(box_a, box_c).arrange(RIGHT, buff=0.9)
-    # outputs.move_to(ORIGIN + DOWN * 0.2)
+    # Re-create the two output boxes centred
+    box_a = text_box("Final Capability", box_color=GREEN_D, font_size=22, w=3.5, h=0.85)
+    box_c = text_box("Final Cost", box_color=GOLD, font_size=22, w=3.5, h=0.85)
+    outputs = VGroup(box_a, box_c).arrange(UP, buff=0.9)
+    outputs.move_to(ORIGIN + DOWN * 0.2)
 
-    # scene.play(
-    #     FadeIn(box_a, shift=UP * 0.2),
-    #     FadeIn(box_c, shift=UP * 0.2),
-    #     run_time=0.8,
-    # )
-    # scene.play(
-    #     Flash(box_a.get_center(), color=GREEN_A, flash_radius=0.7, line_length=0.25),
-    #     Flash(box_c.get_center(), color=GOLD, flash_radius=0.7, line_length=0.25),
-    # )
+    scene.play(
+        FadeIn(box_a, shift=UP * 0.2),
+        FadeIn(box_c, shift=UP * 0.2),
+        run_time=0.8,
+    )
+    scene.play(
+        Flash(box_a.get_center(), color=GREEN_A, flash_radius=0.7, line_length=0.25),
+        Flash(box_c.get_center(), color=GOLD, flash_radius=0.7, line_length=0.25),
+    )
 
-    # # "To Optimizer →" arrow
-    # to_opt = VGroup(
-    #     Text("To Optimizer", font_size=26, color=WHITE),
-    #     MathTex(r"\rightarrow", font_size=36, color=WHITE),
-    # ).arrange(RIGHT, buff=0.18)
-    # to_opt.next_to(outputs, RIGHT, buff=0.55)
-    # to_opt_arr = Arrow(
-    #     outputs.get_right(),
-    #     to_opt.get_left() + LEFT * 0.1,
-    #     buff=0.10,
-    #     stroke_width=3.5,
-    #     color=WHITE,
-    # )
+    scene.play(outputs.animate.shift(LEFT))
 
-    # scene.play(GrowArrow(to_opt_arr), FadeIn(to_opt, shift=LEFT * 0.15))
-    # scene.play(
-    #     to_opt.animate.set_color(YELLOW),
-    #     to_opt_arr.animate.set_color(YELLOW),
-    #     run_time=0.5,
-    # )
+    # "To Optimizer"
+    to_opt = Text("To Optimizer", font_size=26, color=WHITE)
+    to_opt.next_to(outputs, RIGHT, buff=0.55)
+    to_opt_arr = Arrow(
+        outputs.get_right(),
+        to_opt.get_left() + LEFT * 0.1,
+        buff=0.10,
+        stroke_width=3.5,
+        color=WHITE,
+    )
 
-    # scene.wait(1.5)
+    scene.play(GrowArrow(to_opt_arr), FadeIn(to_opt, shift=LEFT * 0.15))
+    scene.play(
+        to_opt.animate.set_color(YELLOW),
+        to_opt_arr.animate.set_color(YELLOW),
+        run_time=0.5,
+    )
+
+    scene.wait(1.5)
