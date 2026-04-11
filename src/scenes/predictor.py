@@ -529,45 +529,208 @@ def play_scene09_length_prediction(scene):
 
 
 def play_scene10_retrieval_augmentation(scene):
-    title = Text("Retrieval Augmentation", font_size=48).to_edge(UP)
-    axes = Axes(
-        x_range=[-3, 3, 1], y_range=[-2, 2, 1], x_length=7, y_length=4.5, tips=False
-    )
-    axes.shift(DOWN * 0.2)
-    current = Dot(axes.c2p(0.3, 0.2), color=YELLOW, radius=0.08)
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 1  (0s – 12s): Title + Vector space with radar scan
+    # ══════════════════════════════════════════════════════════════════════
+    title = Text("Retrieval Augmentation", font_size=42).to_edge(UP, buff=0.45)
+    scene.play(FadeIn(title, shift=DOWN * 0.2))
+
+    rng = np.random.default_rng(7)
+    bg_coords = [(rng.uniform(-5.5, 5.5), rng.uniform(-2.8, 1.6)) for _ in range(38)]
+
     history_coords = [
-        (-1.8, 0.9),
-        (-1.0, -0.7),
-        (1.7, 1.0),
-        (2.1, -1.1),
-        (0.9, 0.4),
-        (-0.2, 1.2),
+        (-0.6, 0.5),  # idx 0  – nearest
+        (0.8, 0.7),  # idx 1  – nearest
+        (-0.9, -0.4),  # idx 2  – nearest
+        (0.4, -0.8),  # idx 3  – medium
+        (-1.6, 1.0),  # idx 4  – farther
+        (1.5, -0.5),  # idx 5  – farther
     ]
-    history = VGroup(
-        *[Dot(axes.c2p(x, y), color=BLUE_B, radius=0.055) for x, y in history_coords]
+    sim_weights = [0.92, 0.85, 0.78, 0.61, 0.44, 0.38]
+    hist_a = [1, 1, 0, 1, 0, 1]
+    hist_l = [210, 190, 230, 175, 260, 220]
+
+    bg_dots = VGroup(
+        *[
+            Dot(point=[x, y, 0], radius=0.035, color=BLUE_E, fill_opacity=0.45)
+            for x, y in bg_coords
+        ]
     )
-    radar = Circle(radius=0.25, color=YELLOW).move_to(current)
-    nearest_ids = [1, 4, 5]
-    nearest = VGroup(*[history[i] for i in nearest_ids])
-    links = VGroup(
-        *[Line(current.get_center(), p.get_center(), color=YELLOW_A) for p in nearest]
-    )
-    sim_label = Text("Cosine similarity -> nearest Q_k", font_size=24).to_edge(DOWN)
-    eq = (
-        MathTex(
-            r"a^{ret}_{i,j}=\frac{\sum_{m\in Q_k}\mathrm{sim}(E_q^i,E_q^m)a_{m,j}}{\sum_{m\in Q_k}\mathrm{sim}(E_q^i,E_q^m)}"
-        )
-        .scale(0.75)
-        .next_to(title, DOWN, buff=0.3)
+    hist_dots = VGroup(
+        *[
+            Dot(point=[x, y, 0], radius=0.060, color=BLUE_B, fill_opacity=0.80)
+            for x, y in history_coords
+        ]
     )
 
-    scene.play(FadeIn(title), Create(axes), FadeIn(history), FadeIn(current))
-    scene.play(ShowPassingFlash(radar.copy().scale(3.5), time_width=0.8), run_time=1.0)
-    scene.play(
-        *[p.animate.set_color(TEAL_A).scale(1.2) for p in nearest], Create(links)
+    EQ_POS = np.array([0.0, 0.0, 0.0])
+    eq_dot = Dot(EQ_POS, radius=0.10, color=YELLOW)
+    eq_dot_lbl = MathTex(r"E_q^i", font_size=26, color=YELLOW).next_to(
+        eq_dot, UR, buff=0.08
     )
-    scene.play(FadeIn(eq), FadeIn(sim_label))
-    scene.wait(1.2)
+
+    scene.play(FadeIn(bg_dots), FadeIn(hist_dots))
+    scene.play(FadeIn(eq_dot), Write(eq_dot_lbl))
+
+    # Radar ripple
+    for scale in [1.0, 2.0, 3.2]:
+        ripple = Circle(
+            radius=0.18 * scale,
+            color=YELLOW,
+            stroke_width=2,
+            stroke_opacity=max(0.1, 0.7 - scale * 0.18),
+        )
+        ripple.move_to(EQ_POS)
+        scene.play(ShowPassingFlash(ripple, time_width=0.6), run_time=0.55)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 2  (12s – 24s): Top-K highlight + similarity lines
+    # ══════════════════════════════════════════════════════════════════════
+    scene.play(
+        *[d.animate.set_color(TEAL_A).scale(1.15) for d in hist_dots], run_time=0.5
+    )
+
+    TOP_K = [0, 1, 2]
+    top_dots = VGroup(*[hist_dots[i] for i in TOP_K])
+    far_dots = VGroup(
+        *[hist_dots[i] for i in range(len(history_coords)) if i not in TOP_K]
+    )
+
+    scene.play(
+        *[d.animate.set_color(BLUE_E).set_opacity(0.35) for d in far_dots],
+        *[d.animate.set_color(TEAL_A).scale(1.1) for d in top_dots],
+        run_time=0.6,
+    )
+
+    # Similarity lines – thickness ∝ sim weight
+    sim_lines = VGroup()
+    for i in TOP_K:
+        x, y = history_coords[i]
+        w = sim_weights[i]
+        line = Line(
+            EQ_POS,
+            [x, y, 0],
+            color=YELLOW_A,
+            stroke_width=1.5 + w * 4.5,
+            stroke_opacity=0.4 + w * 0.55,
+        )
+        sim_lines.add(line)
+
+    scene.play(LaggedStart(*[Create(l) for l in sim_lines], lag_ratio=0.25))
+    scene.wait(0.4)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 2b: Q_k label box — arrows from Top-K dots point to it
+    # ══════════════════════════════════════════════════════════════════════
+    # Build  Q_k = { E_q^{m_1}, E_q^{m_2},... E_q^{m_k} }  label in bottom-right
+    qk_label = MathTex(
+        r"Q_k = \{E_q^{m_1},\; E_q^{m_2},...\; E_q^{m_k}\}",
+        font_size=28,
+        color=TEAL_A,
+    )
+    qk_box = SurroundingRectangle(
+        qk_label,
+        color=TEAL_A,
+        buff=0.18,
+        corner_radius=0.10,
+        stroke_width=1.8,
+    )
+    qk_group = VGroup(qk_label, qk_box)
+    qk_group.shift(RIGHT * 4 + UP * 2)
+
+    scene.play(FadeIn(qk_group, shift=UP * 0.15))
+
+    # One arrow per Top-K dot → the Q_k box
+    # Arrows originate from each highlighted dot and converge on the left edge of the box
+    qk_arrows = VGroup()
+    for i in TOP_K:
+        x, y = history_coords[i]
+        start = np.array([x, y, 0])
+        end = qk_box.get_left()
+        arr = DashedLine(
+            start,
+            end,
+            buff=0.10,
+            stroke_width=2.2,
+            color=TEAL_A,
+        )
+        qk_arrows.add(arr)
+
+    scene.play(
+        LaggedStart(*[Create(a) for a in qk_arrows], lag_ratio=0.25),
+        run_time=1.0,
+    )
+    scene.wait(0.6)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 3  (35s – 50s): Fade space → two weighted-average formulas
+    # ══════════════════════════════════════════════════════════════════════
+    scene.play(
+        bg_dots.animate.set_opacity(0.10),
+        hist_dots.animate.set_opacity(0.12),
+        sim_lines.animate.set_opacity(0.12),
+        eq_dot.animate.set_opacity(0.15),
+        eq_dot_lbl.animate.set_opacity(0.15),
+        qk_arrows.animate.set_opacity(0.15),
+        run_time=0.7,
+    )
+
+    # Two formulas
+    formula_l = formulas.retrieval_length()
+    formula_a = formulas.retrieval_capability()
+
+    formula_group = VGroup(formula_l, formula_a).arrange(DOWN, buff=0.70)
+    # Shift left so the Q_k box (bottom-right) stays visible beside the formulas
+    formula_group.move_to(ORIGIN + LEFT * 1.0)
+
+    scene.play(Write(formula_l), run_time=1.6)
+    scene.play(Write(formula_a), run_time=1.6)
+    scene.wait(0.4)
+
+    # Highlight sim() in numerator AND denominator of both formulas
+    sim_parts = [
+        *formula_l.get_parts_by_tex(r"\mathrm{sim}(E_q^i, E_{q_m})"),
+        *formula_a.get_parts_by_tex(r"\mathrm{sim}(E_q^i, E_{q_m})"),
+    ]
+    scene.play(
+        *[p.animate.set_color(YELLOW).set_opacity(1.0) for p in sim_parts],
+        run_time=0.6,
+    )
+
+    # Also re-highlight the Q_k box to bridge the visual connection
+    scene.play(
+        qk_box.animate.set_color(YELLOW).set_stroke(width=2.5),
+        qk_label.animate.set_color(YELLOW),
+        run_time=0.5,
+    )
+
+    # Highlight the ∑_{m∈Q_k} parts in the formulas that reference Q_k
+    qk_parts = [
+        *formula_l.get_parts_by_tex(r"Q_k"),
+        *formula_a.get_parts_by_tex(r"Q_k"),
+    ]
+    scene.play(
+        *[Indicate(p, color=TEAL_A, scale_factor=1.22) for p in qk_parts],
+        run_time=0.7,
+    )
+    scene.wait(0.3)
+
+    # Weighted-average label
+    wa_label = VGroup(
+        MathTex(r"\rightarrow", font_size=17, color=GREY_A),
+        Text("Weighted Average (weight = similarity)", font_size=17, color=GREY_A),
+    ).arrange(RIGHT, buff=0.1)
+    wa_label.next_to(formula_group, DOWN, buff=0.40)
+    scene.play(FadeIn(wa_label, shift=UP * 0.1))
+
+    # Pulse sim parts twice
+    for _ in range(2):
+        scene.play(
+            *[Indicate(p, color=YELLOW, scale_factor=1.18) for p in sim_parts],
+            run_time=0.7,
+        )
+
+    scene.wait(1.5)
 
 
 def play_scene11_fusion(scene):

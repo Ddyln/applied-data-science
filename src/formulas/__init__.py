@@ -84,3 +84,17 @@ def length_prediction():
         r"\Bigr)",  # [14]
         font_size=50,
     )
+
+
+def retrieval_length():
+    return MathTex(
+        r"l^{ret}_{i,j} = \frac{\sum_{q_m \in \mathcal{Q}_k}\mathrm{sim}(E_q^i, E_{q_m})\cdot\, l_{m,j}}{\sum_{q_m \in Q_k}\mathrm{sim}(E_q^i, E_{q_m})}",
+        font_size=34,
+    )
+
+
+def retrieval_capability():
+    return MathTex(
+        r"a^{ret}_{i,j} = \frac{\sum_{q_m \in \mathcal{Q}_k}\mathrm{sim}(E_q^i, E_{q_m})\cdot\, a_{m,j}}{\sum_{q_m \in Q_k}\mathrm{sim}(E_q^i, E_{q_m})}",
+        font_size=34,
+    )
