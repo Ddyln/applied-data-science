@@ -2,28 +2,28 @@
 
 from manim import *
 
-from formulas import omnirouter
+import formulas
 
 
 def play_scene12_lagrangian(scene):
     title = Text("Lagrangian Formulation", font_size=48).to_edge(UP)
-    obj = omnirouter.objective().scale(0.86).next_to(title, DOWN, buff=0.55)
+    obj = formulas.objective().scale(0.86).next_to(title, DOWN, buff=0.55)
     q = (
-        omnirouter.quality_constraint()
+        formulas.quality_constraint()
         .scale(0.76)
         .next_to(obj, DOWN, aligned_edge=LEFT, buff=0.25)
     )
     cap = (
-        omnirouter.capacity_constraint()
+        formulas.capacity_constraint()
         .scale(0.76)
         .next_to(q, DOWN, aligned_edge=LEFT, buff=0.2)
     )
     assign = (
-        omnirouter.assignment_constraint()
+        formulas.assignment_constraint()
         .scale(0.76)
         .next_to(cap, DOWN, aligned_edge=LEFT, buff=0.2)
     )
-    lag = omnirouter.lagrangian().scale(0.62).next_to(title, DOWN, buff=0.55)
+    lag = formulas.lagrangian().scale(0.62).next_to(title, DOWN, buff=0.55)
 
     scene.play(FadeIn(title), FadeIn(obj))
     scene.play(FadeIn(VGroup(q, cap, assign), shift=UP * 0.2))
@@ -61,7 +61,7 @@ def play_scene13_optimality_condition(scene):
 
 def play_scene14_decision_rule(scene):
     title = Text("Decision Rule", font_size=48).to_edge(UP)
-    eq = omnirouter.decision_rule().scale(0.86)
+    eq = formulas.decision_rule().scale(0.86)
     caption = Text("Pick model with minimum adjusted score", font_size=28, color=YELLOW)
     caption.next_to(eq, DOWN, buff=0.35)
     box = SurroundingRectangle(eq, color=YELLOW, buff=0.2)

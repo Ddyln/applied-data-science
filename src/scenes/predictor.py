@@ -2,89 +2,245 @@
 
 from manim import *
 
-
-def play_scene07_embeddings(scene):
-    title = Text("Embedding Queries and Models", font_size=48).to_edge(UP)
-    query = RoundedRectangle(width=3.6, height=1.0, corner_radius=0.12, color=WHITE)
-    model = RoundedRectangle(width=3.6, height=1.0, corner_radius=0.12, color=WHITE)
-    query_label = Text("Query text", font_size=24).move_to(query)
-    model_label = Text("Model profile", font_size=24).move_to(model)
-    source = VGroup(VGroup(query, query_label), VGroup(model, model_label)).arrange(
-        DOWN, buff=0.55
-    )
-    source.to_edge(LEFT, buff=0.9)
-
-    encoder = RoundedRectangle(width=2.4, height=3.0, corner_radius=0.15, color=BLUE_B)
-    encoder.move_to(ORIGIN)
-    encoder_label = Text("Encoder", font_size=24, color=BLUE_B).move_to(encoder)
-
-    vec_q = VGroup(
-        *[Square(0.24, color=TEAL_A).set_fill(TEAL_E, opacity=0.6) for _ in range(8)]
-    ).arrange(RIGHT, buff=0.08)
-    vec_l = VGroup(
-        *[
-            Square(0.24, color=PURPLE_A).set_fill(PURPLE_E, opacity=0.6)
-            for _ in range(8)
-        ]
-    ).arrange(RIGHT, buff=0.08)
-    vec_q_text = MathTex(r"E_q").next_to(vec_q, DOWN, buff=0.15)
-    vec_l_text = MathTex(r"E_l").next_to(vec_l, DOWN, buff=0.15)
-    vectors = VGroup(VGroup(vec_q, vec_q_text), VGroup(vec_l, vec_l_text)).arrange(
-        DOWN, buff=0.7
-    )
-    vectors.to_edge(RIGHT, buff=1.0)
-
-    arrows = VGroup(
-        Arrow(query.get_right(), encoder.get_left(), buff=0.1),
-        Arrow(model.get_right(), encoder.get_left(), buff=0.1),
-        Arrow(encoder.get_right(), vec_q.get_left(), buff=0.15),
-        Arrow(encoder.get_right(), vec_l.get_left(), buff=0.15),
-    )
-
-    scene.play(FadeIn(title))
-    scene.play(FadeIn(source))
-    scene.play(FadeIn(encoder), FadeIn(encoder_label))
-    scene.play(LaggedStart(*[GrowArrow(a) for a in arrows[:2]], lag_ratio=0.2))
-    scene.play(
-        LaggedStart(*[GrowArrow(a) for a in arrows[2:]], lag_ratio=0.2), FadeIn(vectors)
-    )
-    scene.wait(1.2)
+from components import vector_strip, text_box
+import formulas
 
 
 def play_scene08_capability_prediction(scene):
-    title = Text("Capability Prediction", font_size=48).to_edge(UP)
-    vec_q = VGroup(
-        *[Square(0.25, color=TEAL_A).set_fill(TEAL_E, opacity=0.6) for _ in range(6)]
-    ).arrange(RIGHT, buff=0.08)
-    vec_l = VGroup(
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 1: Title + full formula reveal
+    # ══════════════════════════════════════════════════════════════════════
+    title = Text("Capability Prediction", font_size=42).to_edge(UP, buff=0.45)
+    formula = formulas.capability_prediction().move_to(ORIGIN)
+
+    scene.play(FadeIn(title, shift=DOWN * 0.2))
+    scene.play(Write(formula), run_time=2.2)
+    scene.wait(2.0)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 2: Highlight E_q, E_l → pull out static vector strips
+    # ══════════════════════════════════════════════════════════════════════
+    # Dim everything except E_q^i [6] and E_l^j [8]
+    highlight_idx = [6, 8]
+    scene.play(
         *[
-            Square(0.25, color=PURPLE_A).set_fill(PURPLE_E, opacity=0.6)
-            for _ in range(6)
-        ]
-    ).arrange(RIGHT, buff=0.08)
-    vec_q.to_edge(LEFT, buff=1.0).shift(UP * 1.1)
-    vec_l.to_edge(LEFT, buff=1.0).shift(DOWN * 1.1)
-    dot_label = MathTex(r"E_q^i\cdot E_l^j").next_to(
-        VGroup(vec_q, vec_l), RIGHT, buff=0.6
-    )
-    sigma = MathTex(r"\sigma(\cdot)").next_to(dot_label, RIGHT, buff=0.7)
-    output = DecimalNumber(0.0, num_decimal_places=3, include_sign=False).next_to(
-        sigma, RIGHT, buff=0.7
-    )
-    output_tag = MathTex(r"a^{pred}_{i,j}").next_to(output, DOWN, buff=0.15)
-    eq = (
-        MathTex(r"a^{pred}_{i,j}=\sigma(W_1(E_q^i\cdot E_l^j)+b_1)")
-        .scale(0.86)
-        .to_edge(DOWN)
+            formula[k].animate.set_opacity(0.25)
+            for k in range(len(formula))
+            if k not in highlight_idx
+        ],
+        *[formula[k].animate.set_opacity(1.0).set_color(YELLOW) for k in highlight_idx],
+        run_time=0.8,
     )
 
-    scene.play(FadeIn(title), FadeIn(vec_q), FadeIn(vec_l))
-    scene.play(Indicate(vec_q), Indicate(vec_l))
-    scene.play(FadeIn(dot_label))
-    scene.play(Flash(dot_label, color=YELLOW, flash_radius=0.45), FadeIn(sigma))
-    scene.play(output.animate.set_value(0.842), FadeIn(output_tag), run_time=1.2)
-    scene.play(FadeIn(eq))
-    scene.wait(1.2)
+    # Static vector strips
+    vec_q = vector_strip(edge_color=GREEN_A, fill_color=GREEN_E)
+    vec_q.next_to(formula[6], DOWN, buff=0.60).shift(LEFT * 2.4)
+    eq_lbl = MathTex(r"E_q^i", font_size=26, color=GREEN_A).next_to(
+        vec_q, LEFT, buff=0.18
+    )
+
+    vec_l = vector_strip(edge_color=TEAL_A, fill_color=TEAL_E)
+    vec_l.next_to(formula[8], DOWN, buff=0.60).shift(RIGHT * 1.4)
+    el_lbl = MathTex(r"E_l^j", font_size=26, color=TEAL_A).next_to(
+        vec_l, LEFT, buff=0.18
+    )
+
+    scene.play(TransformFromCopy(formula[6], vec_q), FadeIn(eq_lbl), run_time=0.9)
+    scene.play(TransformFromCopy(formula[8], vec_l), FadeIn(el_lbl), run_time=0.9)
+    scene.wait(0.6)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 3: Dot product → "Similarity Score" box
+    # ══════════════════════════════════════════════════════════════════════
+    # Highlight the dot operator
+    scene.play(
+        formula[7].animate.set_opacity(1.0).set_color(YELLOW).scale(1.5),
+        run_time=0.45,
+    )
+
+    # Vectors point to Dot Product
+    sim_box = text_box("Dot Product", box_color=YELLOW_D, text_color=WHITE)
+    sim_box.move_to(DOWN * 2.5)
+    arrow_eq_merge_point = Arrow(vec_q.get_bottom(), sim_box.get_top(), stroke_width=3)
+    arrow_el_merge_point = Arrow(vec_l.get_bottom(), sim_box.get_top(), stroke_width=3)
+
+    scene.play(GrowArrow(arrow_eq_merge_point), GrowArrow(arrow_el_merge_point))
+
+    scene.play(
+        # FadeOut(VGroup(vec_q, vec_l, eq_lbl, el_lbl)),
+        FadeIn(sim_box),
+        run_time=0.6,
+    )
+    scene.wait(0.5)
+
+    scene.play(
+        FadeOut(
+            VGroup(
+                arrow_eq_merge_point, arrow_el_merge_point, vec_q, vec_l, eq_lbl, el_lbl
+            )
+        )
+    )
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 4: W1, b1 neural gate → "Raw Score" box
+    # ══════════════════════════════════════════════════════════════════════
+    # Highlight W1 and b1 in formula
+    scene.play(
+        formula[4].animate.set_opacity(1.0).set_color(BLUE_B),
+        formula[5].animate.set_opacity(1.0).set_color(BLUE_B),
+        formula[9].animate.set_opacity(1.0).set_color(BLUE_B),
+        formula[10].animate.set_opacity(1.0).set_color(BLUE_B),
+        formula[11].animate.set_opacity(1.0).set_color(BLUE_B),
+        run_time=0.5,
+    )
+
+    # move simbox left
+    scene.play(sim_box.animate.shift(LEFT * 2 + UP * 0.5), run_time=1)
+
+    # Neural node gate (W1, b1)
+    node_circ = Circle(
+        radius=0.45,
+        color=BLUE_B,
+        fill_color=BLUE_E,
+        fill_opacity=0.30,
+        stroke_width=2.5,
+    )
+    node_lbl = MathTex(r"W_1,\,b_1", font_size=20, color=BLUE_B).move_to(node_circ)
+    node = VGroup(node_circ, node_lbl)
+    node.next_to(sim_box, RIGHT, buff=1.1)
+
+    arr_in = Arrow(
+        sim_box.get_right(), node.get_left(), buff=0.10, stroke_width=3, color=WHITE
+    )
+    scene.play(GrowArrow(arr_in), FadeIn(node))
+
+    # Transform: new "Raw Score" box exits the gate in ORANGE
+    raw_box = text_box("score", w=1.4, box_color=ORANGE, text_color=WHITE)
+    raw_box.next_to(node, RIGHT, buff=1.1)
+
+    arr_out = Arrow(
+        node.get_right(), raw_box.get_left(), buff=0.10, stroke_width=3, color=WHITE
+    )
+    scene.play(GrowArrow(arr_out), FadeIn(raw_box))
+    scene.wait(0.5)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 5: Sigmoid curve → "Capability Score" box
+    # ══════════════════════════════════════════════════════════════════════
+    # Highlight sigma
+    scene.play(
+        formula[2].animate.set_opacity(1.0).set_color(GOLD),
+        formula[3].animate.set_opacity(1.0).set_color(GOLD),
+        formula[12].animate.set_opacity(1.0).set_color(GOLD),
+        run_time=0.4,
+    )
+    scene.wait(1)
+
+    # Sigmoid axes
+    axes = Axes(
+        x_range=[-6, 6, 2],
+        y_range=[-0.05, 1.1, 0.5],
+        x_length=5.2,
+        y_length=3.0,
+        axis_config={"color": GREY_B, "stroke_width": 2},
+        tips=False,
+    ).shift(DOWN * 0.5)
+
+    sigmoid_curve = axes.plot(
+        lambda x: 1 / (1 + np.exp(-x)),
+        color=GOLD,
+        stroke_width=3,
+    )
+    x_lbl = MathTex(r"z", font_size=24).next_to(axes.x_axis.get_end(), RIGHT, buff=0.08)
+    y_lbl = MathTex(r"\sigma(z)", font_size=22).next_to(
+        axes.y_axis.get_end(), UP, buff=0.08
+    )
+    # "Raw Score" box glides along the sigmoid curve
+    # We animate it moving left→right across the x-axis while tracking the curve
+    INPUT_X = 2.2  # representative x value on the sigmoid
+    INPUT_Y = 1 / (1 + np.exp(-INPUT_X))  # ≈ 0.90
+
+    # Raw Score box travels from its position to the x-axis entry point
+    x_entry = axes.c2p(INPUT_X, 0)
+    # scene.play(, run_time=0.8)
+
+    # Clear the gate area; shrink formula to top-left
+    scene.play(
+        FadeOut(VGroup(arr_in, node, arr_out, sim_box)),
+        formula.animate.scale(0.75).shift(UP * 2 + LEFT * 3),
+        raw_box.animate.move_to(x_entry).shift(DOWN * 0.75),
+        run_time=0.7,
+    )
+
+    scene.play(
+        Create(axes),
+        Write(x_lbl),
+        Write(y_lbl),
+        run_time=0.8,
+    )
+    scene.play(Create(sigmoid_curve), run_time=1.0)
+
+    # Vertical dashed line from x-axis up to the curve
+    v_line = DashedLine(
+        axes.c2p(INPUT_X, 0),
+        axes.c2p(INPUT_X, INPUT_Y),
+        color=GREY_A,
+        stroke_width=2,
+        dash_length=0.09,
+    )
+    curve_dot = Dot(axes.c2p(INPUT_X, INPUT_Y), color=GOLD, radius=0.10)
+    scene.play(Create(v_line), FadeIn(curve_dot))
+
+    # Horizontal dashed line from curve to y-axis
+    h_line = DashedLine(
+        axes.c2p(INPUT_X, INPUT_Y),
+        axes.c2p(0, INPUT_Y),
+        color=GREY_A,
+        stroke_width=2,
+        dash_length=0.09,
+    )
+    y_dot = Dot(axes.c2p(0, INPUT_Y), color=GOLD, radius=0.10)
+    scene.play(Create(h_line), FadeIn(y_dot))
+    scene.wait(0.3)
+
+    # Raw Score box transforms into "Capability Score (85%)" in GREEN
+    cap_box = text_box(
+        "Predicted Capability",
+        box_color=GREEN_D,
+        text_color=WHITE,
+        w=3.0,
+        font_size=20,
+    )
+    cap_box.move_to(axes.c2p(INPUT_X, INPUT_Y) + UP * 0.55)
+
+    scene.play(
+        Transform(raw_box, cap_box),
+        run_time=0.75,
+    )
+    scene.play(
+        Flash(cap_box.get_center(), color=GREEN_A, flash_radius=0.6, line_length=0.22)
+    )
+    scene.wait(0.4)
+
+    # Capability Score box flies back and lands on a^pred_{i,j} in the formula
+    lhs_pos = formula[0].get_center()
+    scene.play(
+        raw_box.animate.scale(0.55).move_to(lhs_pos).set_opacity(0),
+        # FadeOut(raw_box),
+        formula[0].animate.set_opacity(1.0).set_color(GREEN_D),
+        formula[1].animate.set_opacity(1.0).set_color(GREEN_D),
+    )
+
+    scene.wait(1)
+
+    scene.play(
+        FadeOut(
+            VGroup(axes, x_lbl, y_lbl, sigmoid_curve, v_line, h_line, curve_dot, y_dot)
+        ),
+        formula.animate.scale(1.3).move_to(ORIGIN),
+    )
+
+    scene.wait(1.5)
 
 
 def play_scene09_length_prediction(scene):

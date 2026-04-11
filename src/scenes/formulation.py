@@ -2,9 +2,8 @@
 
 from manim import *
 
-from formulas import omnirouter
-from components.text import text_box, row_of_var
-from components.grid import mini_grid
+import formulas
+from components import text_box, row_of_var, mini_grid
 
 
 def play_scene05_problem_formulation(scene):
@@ -39,21 +38,15 @@ def play_scene05_problem_formulation(scene):
     )
     intro_group.move_to(ORIGIN)
 
-    objective = omnirouter.objective().scale(0.8).next_to(title, DOWN, buff=0.6)
+    objective = formulas.objective().scale(0.8).next_to(title, DOWN, buff=0.6)
     find_label = Text("Find", font_size=34).next_to(objective, LEFT, buff=0.35)
     c1 = (
-        omnirouter.assignment_constraint()
+        formulas.assignment_constraint()
         .scale(0.74)
         .next_to(objective, DOWN, aligned_edge=LEFT)
     )
-    c2 = (
-        omnirouter.quality_constraint().scale(0.74).next_to(c1, DOWN, aligned_edge=LEFT)
-    )
-    c3 = (
-        omnirouter.capacity_constraint()
-        .scale(0.74)
-        .next_to(c2, DOWN, aligned_edge=LEFT)
-    )
+    c2 = formulas.quality_constraint().scale(0.74).next_to(c1, DOWN, aligned_edge=LEFT)
+    c3 = formulas.capacity_constraint().scale(0.74).next_to(c2, DOWN, aligned_edge=LEFT)
     st_label = MathTex(r"\mathrm{s.t.}").scale(0.95).next_to(c1, LEFT, buff=0.5)
     VGroup(objective, c1, c2, c3).shift(LEFT * 2)
     find_label.shift(LEFT * 2)
@@ -110,7 +103,7 @@ def play_scene05_problem_formulation(scene):
 
 def play_scene06_two_stage_framework(scene):
     # ── Objective label (top) ──────────────────────────────────────────────
-    # objective = omnirouter.objective().scale(0.76).to_edge(UP, buff=0.42)
+    # objective = formulas.objective().scale(0.76).to_edge(UP, buff=0.42)
     # scene.play(FadeIn(objective))
 
     # ══════════════════════════════════════════════════════════════════════

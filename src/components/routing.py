@@ -50,3 +50,12 @@ def make_model_column(labels, strengths):
 def connect(query_card: QueryCard, model_node: ModelNode, good: bool = True):
     color = theme.ROUTE_GOOD if good else theme.ROUTE_BAD
     return Arrow(query_card.get_right(), model_node.get_left(), buff=0.1, color=color)
+
+
+__all__ = [
+    "QueryCard",
+    "ModelNode",
+    "make_query_column",
+    "make_model_column",
+    "connect",
+]
