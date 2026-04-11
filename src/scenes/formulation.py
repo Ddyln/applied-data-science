@@ -3,6 +3,8 @@
 from manim import *
 
 from formulas import omnirouter
+from components.text import text_box, row_of_var
+from components.grid import mini_grid
 
 
 def play_scene05_problem_formulation(scene):
@@ -108,24 +110,18 @@ def play_scene05_problem_formulation(scene):
 
 def play_scene06_two_stage_framework(scene):
     # ── Objective label (top) ──────────────────────────────────────────────
-    objective = omnirouter.objective().scale(0.76).to_edge(UP, buff=0.42)
-    scene.play(FadeIn(objective))
+    # objective = omnirouter.objective().scale(0.76).to_edge(UP, buff=0.42)
+    # scene.play(FadeIn(objective))
 
     # ══════════════════════════════════════════════════════════════════════
     #  COORDINATE SYSTEM  (1920×1080 → 14.22 × 8.0 Manim units)
     #  Safe x range: -7.11 … +7.11   Safe y range: -4.0 … +4.0
     # ══════════════════════════════════════════════════════════════════════
-    Y_C = -0.6  # vertical centre of the whole diagram
+    Y_C = -0.1  # vertical centre of the whole diagram (shifted up after title removal)
 
-    # ── INPUT BOXES ───────────────────────────────────────────────────────
-    def small_box(label, w=1.85, h=0.62):
-        b = RoundedRectangle(width=w, height=h, corner_radius=0.10, color=WHITE)
-        t = Text(label, font_size=19, line_spacing=0.85).move_to(b)
-        return VGroup(b, t)
-
-    q_card = small_box("Queries", w=1.55, h=0.56)
+    q_card = text_box("Queries", w=1.55, h=0.56)
     q_card[1].scale(0.92)
-    llm_card = small_box("LLM\nDescriptions", w=1.55, h=0.64)
+    llm_card = text_box("LLM\nDescriptions", w=1.55, h=0.64)
     llm_card[1].scale(0.86)
     input_col = VGroup(q_card, llm_card).arrange(DOWN, buff=0.34)
     input_col.move_to([-6.05, Y_C, 0])
@@ -134,9 +130,9 @@ def play_scene06_two_stage_framework(scene):
     enc_box = RoundedRectangle(
         width=1.45, height=1.60, corner_radius=0.12, color=GREEN_C
     )
-    enc_text = Text("Embedding\nEncoder", font_size=17, line_spacing=0.9).move_to(
-        enc_box
-    )
+    enc_text = Paragraph(
+        "Embedding\nEncoder", font_size=17, alignment="center", line_spacing=0.9
+    ).move_to(enc_box)
     enc_group = VGroup(enc_box, enc_text)
     enc_group.move_to([-3.85, Y_C, 0])
 
@@ -174,18 +170,6 @@ def play_scene06_two_stage_framework(scene):
     lane_3 = Y_C - 0.30
     lane_bot = Y_C - 0.90
 
-    # ── Small grid icons (embedding columns) beside encoder ───────────────
-    def mini_grid(rows=4, cols=2, cell=0.13, color=GREY_A):
-        g = VGroup()
-        for r in range(rows):
-            for c in range(cols):
-                sq = Square(
-                    side_length=cell, color=color, fill_opacity=0.35, stroke_width=0.8
-                )
-                sq.move_to([c * (cell + 0.02), -r * (cell + 0.02), 0])
-                g.add(sq)
-        return g
-
     grid_top = mini_grid().next_to(enc_box, RIGHT, buff=0.18).shift(UP * 0.62)
     grid_bot = mini_grid().next_to(enc_box, RIGHT, buff=0.18).shift(DOWN * 0.62)
     eq_top_mark = MathTex(r"E_q", font_size=22).next_to(grid_top, UP, buff=0.08)
@@ -195,25 +179,9 @@ def play_scene06_two_stage_framework(scene):
     # Encoder right-edge x (after grids; use grid right edge as fan-out x)
     fan_x = grid_top.get_right()[0] + 0.08
 
-    # ── Arrow helper: elbow from fan_x at enc y_c → branch y → target ────
-    def elbow_arrow(branch_y, target_left_pt, stroke=3):
-        start = np.array([fan_x, Y_C, 0])
-        bend = np.array([fan_x, branch_y, 0])
-        end = np.array([target_left_pt[0], branch_y, 0])
-        line = VMobject(stroke_width=stroke, color=WHITE)
-        line.set_points_as_corners([start, bend, end])
-        tip = Arrow(
-            end + LEFT * 0.001,
-            end,
-            buff=0.0,
-            stroke_width=stroke,
-            max_tip_length_to_length_ratio=0.3,
-        )
-        return VGroup(line, tip)
-
     # ── TOP branch: E_q → Vector DB ──────────────────────────────────────
     vdb_box = RoundedRectangle(
-        width=1.50, height=0.50, corner_radius=0.10, color=BLUE_B
+        width=1.50, height=0.50, corner_radius=0.10, color=PURPLE
     )
     vdb_text = Text("Vector DB", font_size=15).move_to(vdb_box)
     vdb_group = VGroup(vdb_box, vdb_text)
@@ -221,14 +189,8 @@ def play_scene06_two_stage_framework(scene):
     vdb_above = Text("Average Top K Scores", font_size=13, color=GREY_A).next_to(
         vdb_group, UP, buff=0.07
     )
-
-    eq_top_lbl = (
-        MathTex(r"E_q", font_size=22)
-        .next_to(vdb_group, LEFT, buff=0.50)
-        .shift(UP * 0.28)
-    )
     arr_top = Arrow(
-        grid_top.get_right(),
+        grid_top.get_top(),
         vdb_box.get_left(),
         buff=0.08,
         stroke_width=3,
@@ -246,16 +208,9 @@ def play_scene06_two_stage_framework(scene):
         sig_group, LEFT, buff=0.40
     )
 
-    a_circ = VGroup(
-        *[
-            VGroup(
-                Circle(radius=0.20, color=BLUE_B, fill_opacity=0.25),
-                MathTex(r"a", font_size=18).move_to(ORIGIN),
-            )
-            for _ in range(3)
-        ]
-    ).arrange(RIGHT, buff=0.10)
-    a_row = VGroup(a_circ, MathTex(r"\cdots", font_size=22)).arrange(RIGHT, buff=0.12)
+    a_row = VGroup(
+        row_of_var("a", 2), MathTex(r"\cdots", font_size=22), row_of_var("a", 1)
+    ).arrange(RIGHT, buff=0.12)
     a_row.next_to(sig_group, RIGHT, buff=0.50)
     a_box = SurroundingRectangle(
         a_row, color=BLUE_B, buff=0.07, corner_radius=0.08, stroke_width=2.2
@@ -277,19 +232,37 @@ def play_scene06_two_stage_framework(scene):
         sft_group, LEFT, buff=0.40
     )
 
-    c_circ = VGroup(
-        *[
-            VGroup(
-                Circle(radius=0.20, color=GREEN_B, fill_opacity=0.25),
-                MathTex(r"c", font_size=18).move_to(ORIGIN),
-            )
-            for _ in range(3)
-        ]
-    ).arrange(RIGHT, buff=0.10)
-    c_row = VGroup(c_circ, MathTex(r"\cdots", font_size=22)).arrange(RIGHT, buff=0.12)
+    arrow_eq_mid = Arrow(
+        grid_top.get_right(),
+        sig_group.get_left(),
+        buff=0.08,
+        stroke_width=3,
+    )
+    arrow_el_bot = Arrow(
+        grid_bot.get_right(),
+        sft_group.get_left(),
+        buff=0.08,
+        stroke_width=3,
+    )
+    arrow_eq_bot = Arrow(
+        grid_top.get_right(),
+        sft_group.get_left(),
+        buff=0.08,
+        stroke_width=3,
+    )
+    arrow_el_mid = Arrow(
+        grid_bot.get_right(),
+        sig_group.get_left(),
+        buff=0.08,
+        stroke_width=3,
+    )
+
+    c_row = VGroup(
+        row_of_var("c", 2), MathTex(r"\cdots", font_size=22), row_of_var("c", 1)
+    ).arrange(RIGHT, buff=0.12)
     c_row.next_to(sft_group, RIGHT, buff=0.50)
     c_box = SurroundingRectangle(
-        c_row, color=GREEN_B, buff=0.07, corner_radius=0.08, stroke_width=2.2
+        c_row, color=BLUE, buff=0.07, corner_radius=0.08, stroke_width=2.2
     )
 
     arr_sft_c = Arrow(
@@ -349,19 +322,15 @@ def play_scene06_two_stage_framework(scene):
     est_a = MathTex(r"\hat{a}_{ij}", color=BLUE_B, font_size=26).next_to(
         est_c, RIGHT, buff=0.18
     )
-    vdb_to_a = Arrow(
-        vdb_box.get_bottom(), a_box.get_top(), buff=0.10, stroke_width=3, color=BLUE_B
-    )
-    vdb_to_c = Arrow(
-        vdb_box.get_bottom(), c_box.get_top(), buff=0.10, stroke_width=3, color=GREEN_B
-    )
+    vdb_to_a = Arrow(vdb_box.get_right(), a_box.get_left(), buff=0.10, stroke_width=3)
+    vdb_to_c = Arrow(vdb_box.get_right(), c_box.get_left(), buff=0.10, stroke_width=3)
 
     # ══════════════════════════════════════════════════════════════════════
     #  ANIMATE
     # ══════════════════════════════════════════════════════════════════════
     # 1. Inputs
     scene.play(FadeIn(q_card), FadeIn(llm_card))
-    scene.wait(0.2)
+    scene.wait(5)
 
     # 2. Predictor frame (drawn behind content already placed)
     scene.play(Create(pred_frame), FadeIn(pred_label))
@@ -370,27 +339,31 @@ def play_scene06_two_stage_framework(scene):
     scene.play(GrowArrow(arr_q_enc), GrowArrow(arr_l_enc))
     scene.play(FadeIn(enc_group))
     scene.play(FadeIn(grids))
-    scene.wait(0.2)
+    scene.wait(5)
 
     # 4. Top branch – Vector DB
-    scene.play(FadeIn(eq_top_lbl))
+    # scene.play(FadeIn(eq_top_lbl))
     scene.play(Create(arr_top))
     scene.play(FadeIn(vdb_group), FadeIn(vdb_above))
+    scene.wait(10)
 
     # 5. Mid branch – Sigmoid
-    scene.play(FadeIn(eq_mid_lbl))
-    scene.play(FadeIn(sig_group))
-    scene.play(FadeIn(a_box), GrowArrow(arr_sig_a), FadeIn(a_row))
+    # scene.play(FadeIn(eq_mid_lbl))
+    scene.play(FadeIn(sig_group), GrowArrow(arrow_eq_mid), GrowArrow(arrow_el_mid))
+    scene.wait(5)
+    scene.play(FadeIn(a_box), GrowArrow(arr_sig_a), FadeIn(a_row), GrowArrow(vdb_to_a))
+    scene.wait(10)
 
     # 6. Bot branch – Softmax
-    scene.play(FadeIn(eq_bot_lbl))
-    scene.play(FadeIn(sft_group))
-    scene.play(FadeIn(c_box), GrowArrow(arr_sft_c), FadeIn(c_row))
-    scene.wait(0.3)
+    # scene.play(FadeIn(eq_bot_lbl))
+    scene.play(FadeIn(sft_group), GrowArrow(arrow_el_bot), GrowArrow(arrow_eq_bot))
+    scene.wait(5)
+    scene.play(FadeIn(c_box), GrowArrow(arr_sft_c), FadeIn(c_row), GrowArrow(vdb_to_c))
+    scene.wait(10)
 
     # 7. Predictor → Optimizer arrow + labels
     scene.play(GrowArrow(arr_pred_opt))
-    scene.play(FadeIn(est_c), FadeIn(est_a))
+    # scene.play(FadeIn(est_c), FadeIn(est_a))
 
     # 8. Optimizer
     scene.play(Create(opt_frame), FadeIn(opt_label))
@@ -400,8 +373,6 @@ def play_scene06_two_stage_framework(scene):
     scene.play(GrowArrow(arr_dual_mdl))
     scene.play(FadeIn(model_group))
 
-    scene.play(GrowArrow(vdb_to_a), GrowArrow(vdb_to_c))
-
     # 9. Pulse
-    scene.play(Indicate(est_c, color=BLUE_B), Indicate(est_a, color=BLUE_B))
+    # scene.play(Indicate(est_c, color=BLUE_B), Indicate(est_a, color=BLUE_B))
     scene.wait(1.5)
