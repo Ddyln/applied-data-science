@@ -244,38 +244,288 @@ def play_scene08_capability_prediction(scene):
 
 
 def play_scene09_length_prediction(scene):
-    title = Text("Length Prediction", font_size=48).to_edge(UP)
-    add_expr = MathTex(r"E_q^i + E_l^j").to_edge(LEFT, buff=1.2)
-    nn_box = RoundedRectangle(width=2.3, height=1.4, corner_radius=0.12, color=BLUE_B)
-    nn_box.move_to(ORIGIN)
-    nn_label = Text("NN", font_size=24, color=BLUE_B).move_to(nn_box)
-    softmax = MathTex(r"\mathrm{softmax}").to_edge(RIGHT, buff=2.5)
-    bars = VGroup(
-        Rectangle(width=0.25, height=0.4, fill_color=TEAL_E, fill_opacity=0.8),
-        Rectangle(width=0.25, height=0.8, fill_color=TEAL_E, fill_opacity=0.8),
-        Rectangle(width=0.25, height=1.2, fill_color=TEAL_E, fill_opacity=0.8),
-        Rectangle(width=0.25, height=0.6, fill_color=TEAL_E, fill_opacity=0.8),
-    ).arrange(RIGHT, aligned_edge=DOWN, buff=0.12)
-    bars.next_to(softmax, DOWN, buff=0.25)
-    eq = (
-        MathTex(r"l^{pred}_{i,j}=b_s\cdot \mathrm{softmax}(W_2(E_q^i+E_l^j)+b_2)")
-        .scale(0.82)
-        .to_edge(DOWN)
-    )
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 1: Title + formula reveal
+    # ══════════════════════════════════════════════════════════════════════
+    title = Text("Length Prediction", font_size=42).to_edge(UP, buff=0.45)
 
-    a1 = Arrow(add_expr.get_right(), nn_box.get_left(), buff=0.12)
-    a2 = Arrow(nn_box.get_right(), softmax.get_left(), buff=0.12)
-    a3 = Arrow(softmax.get_bottom(), bars.get_top(), buff=0.08)
+    formula = formulas.length_prediction().move_to(ORIGIN)
 
-    scene.play(FadeIn(title), FadeIn(add_expr))
-    scene.play(FadeIn(nn_box), FadeIn(nn_label), GrowArrow(a1))
-    scene.play(GrowArrow(a2), FadeIn(softmax))
+    # Small annotation under l^pred
+    pred_annot = Text("Predicted Token Length", font_size=16, color=GREY_A)
+    pred_annot.next_to(formula[0], DOWN, buff=0.18)
+
+    scene.play(FadeIn(title, shift=DOWN * 0.2))
+    scene.play(Write(formula), run_time=2.2)
+    scene.play(FadeIn(pred_annot, shift=UP * 0.1))
+    scene.wait(1.5)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 2 : E_q + E_l vector addition → "Combined Context"
+    # ══════════════════════════════════════════════════════════════════════
+    # Dim everything except E_q^i [8] and E_l^j [10]
+    highlight_idx = [8, 10]  # also highlight the "+" operator
     scene.play(
-        GrowArrow(a3),
-        LaggedStart(*[GrowFromEdge(b, DOWN) for b in bars], lag_ratio=0.15),
+        *[
+            formula[k].animate.set_opacity(0.22)
+            for k in range(len(formula))
+            if k not in highlight_idx
+        ],
+        *[formula[k].animate.set_opacity(1.0).set_color(YELLOW) for k in highlight_idx],
+        FadeOut(pred_annot),
+        run_time=0.8,
     )
-    scene.play(FadeIn(eq))
-    scene.wait(1.1)
+
+    # Two static vector strips appear below formula
+    vec_q = vector_strip(edge_color=GREEN_A, fill_color=GREEN_E)
+    vec_q.next_to(formula[8], DOWN, buff=0.65).shift(LEFT * 2.8)
+    eq_lbl = MathTex(r"E_q^i", font_size=26, color=GREEN_A).next_to(
+        vec_q, LEFT, buff=0.18
+    )
+
+    vec_l = vector_strip(edge_color=TEAL_A, fill_color=TEAL_E)
+    vec_l.next_to(formula[10], DOWN, buff=0.65).shift(RIGHT)
+    el_lbl = MathTex(r"E_l^j", font_size=26, color=TEAL_A).next_to(
+        vec_l, LEFT, buff=0.18
+    )
+
+    scene.play(TransformFromCopy(formula[8], vec_q), FadeIn(eq_lbl), run_time=0.85)
+    scene.play(TransformFromCopy(formula[10], vec_l), FadeIn(el_lbl), run_time=0.85)
+    scene.wait(0.4)
+
+    # Addition: strips slide ON TOP of each other (not collide — overlap/stack)
+    merge_point = DOWN * 1.65
+    scene.play(
+        formula[9].animate.set_opacity(1.0).set_color(YELLOW),
+        VGroup(vec_q, eq_lbl).animate.move_to(merge_point + LEFT * 0.02),
+        VGroup(vec_l, el_lbl).animate.move_to(merge_point + LEFT * 0.02),
+        run_time=0.9,
+    )
+
+    combined_box = text_box(
+        "Combined Context",
+        box_color=PURPLE_B,
+        text_color=WHITE,
+        w=2.8,
+        h=0.68,
+        font_size=21,
+    )
+    combined_box.move_to(merge_point)
+
+    scene.play(
+        FadeOut(VGroup(vec_q, vec_l, eq_lbl, el_lbl)),
+        FadeIn(combined_box),
+        run_time=0.6,
+    )
+    scene.play(Flash(merge_point, color=PURPLE_A, flash_radius=0.70, line_length=0.25))
+    scene.wait(0.5)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 3: W2/b2 gate → Softmax → Bar chart (buckets)
+    # ══════════════════════════════════════════════════════════════════════
+    # Highlight W2, b2
+    scene.play(
+        formula[6].animate.set_opacity(1.0).set_color(BLUE_B),
+        formula[7].animate.set_opacity(1.0).set_color(BLUE_B),
+        formula[11].animate.set_opacity(1.0).set_color(BLUE_B),
+        formula[12].animate.set_opacity(1.0).set_color(BLUE_B),
+        formula[13].animate.set_opacity(1.0).set_color(BLUE_B),
+        run_time=0.5,
+    )
+
+    scene.play(combined_box.animate.shift(LEFT * 2.3))
+
+    # Neural gate node
+    node_circ = Circle(
+        radius=0.45,
+        color=BLUE_B,
+        fill_color=BLUE_E,
+        fill_opacity=0.30,
+        stroke_width=2.5,
+    )
+    node_lbl = MathTex(r"W_2,\,b_2", font_size=20, color=BLUE_B).move_to(node_circ)
+    node = VGroup(node_circ, node_lbl)
+    node.next_to(combined_box, RIGHT, buff=1.0)
+
+    arr_to_node = Arrow(
+        combined_box.get_right(),
+        node.get_left(),
+        buff=0.10,
+        stroke_width=3,
+        color=WHITE,
+    )
+    scene.play(GrowArrow(arr_to_node), FadeIn(node))
+    # scene.wait(2)
+
+    # Softmax box exits the node
+    softmax_box = text_box(
+        "softmax", box_color=ORANGE, text_color=WHITE, w=1.9, h=0.65, font_size=22
+    )
+    softmax_box.next_to(node, RIGHT, buff=1.0)
+    arr_to_sm = Arrow(
+        node.get_right(), softmax_box.get_left(), buff=0.10, stroke_width=3, color=WHITE
+    )
+
+    # Highlight softmax in formula
+    scene.play(
+        formula[4].animate.set_opacity(1.0).set_color(ORANGE),
+        formula[5].animate.set_opacity(1.0).set_color(ORANGE),
+        formula[14].animate.set_opacity(1.0).set_color(ORANGE),
+        run_time=0.4,
+    )
+    scene.wait(0.25)
+    scene.play(GrowArrow(arr_to_sm), FadeIn(softmax_box))
+    scene.wait(1)
+    scene.play(
+        FadeOut(VGroup(arr_to_node, node, arr_to_sm, combined_box, softmax_box)),
+        formula.animate.scale(0.75).move_to(UP * 2 + LEFT * 3),
+    )
+
+    # Bar chart (bucket histogram) shoots out below the softmax box
+    bucket_labels = ["0-50", "50-150", "150-350", "350-600", "600+"]
+    bucket_heights = [0.5, 1.0, 2.2, 1.3, 0.6]  # "150-350" bucket wins
+
+    bar_width = 0.52
+    bar_group = VGroup()
+    for h in bucket_heights:
+        bar = Rectangle(
+            width=bar_width,
+            height=h,
+            fill_color=TEAL_D,
+            fill_opacity=0.75,
+            stroke_color=TEAL_A,
+            stroke_width=1.5,
+        )
+        bar_group.add(bar)
+    bar_group.arrange(RIGHT, aligned_edge=DOWN, buff=0.18)
+
+    # x-axis tick labels
+    tick_labels = VGroup(
+        *[
+            Text(lbl, font_size=12, color=GREY_A).next_to(bar_group[i], DOWN, buff=0.10)
+            for i, lbl in enumerate(bucket_labels)
+        ]
+    )
+    x_axis = Line(
+        bar_group.get_corner(DL) + LEFT * 0.18,
+        bar_group.get_corner(DR) + RIGHT * 0.18,
+        color=GREY_B,
+        stroke_width=2,
+    )
+    x_axis.add_tip(tip_length=0.12, tip_width=0.12)
+    y_axis = Line(
+        bar_group.get_corner(DL) + LEFT * 0.18,
+        bar_group.get_corner(UL) + LEFT * 0.18 + UP * 0.20,
+        color=GREY_B,
+        stroke_width=2,
+    )
+    y_axis.add_tip(tip_length=0.12, tip_width=0.12)
+    x_axis_lbl = Text("tokens", font_size=13, color=GREY_A)
+    y_axis_lbl = Text("score", font_size=13, color=GREY_A).next_to(
+        y_axis, UP + LEFT, buff=0.08
+    )
+
+    chart = VGroup(x_axis, y_axis, y_axis_lbl, bar_group, tick_labels)
+    chart.next_to(softmax_box, DOWN, buff=0.50).shift(UP * 3 + LEFT * 3)
+    x_axis_lbl.next_to(x_axis, RIGHT + DOWN, buff=0.12)
+    full_chart = VGroup(chart, x_axis_lbl)
+    full_chart.scale(1.25)
+
+    scene.play(
+        LaggedStart(
+            *[GrowFromEdge(b, DOWN) for b in bar_group],
+            lag_ratio=0.15,
+        ),
+        Create(x_axis),
+        Create(y_axis),
+        FadeIn(y_axis_lbl),
+        FadeIn(tick_labels),
+        FadeIn(x_axis_lbl),
+        run_time=1.1,
+    )
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 4: bs × winning bucket → "Estimated Length" box
+    # ══════════════════════════════════════════════════════════════════════
+    # Highlight bs in formula
+    scene.play(
+        formula[2].animate.set_opacity(1.0).set_color(GOLD),
+        formula[3].animate.set_opacity(1.0).set_color(GOLD),
+        run_time=0.4,
+    )
+
+    # Move bs to a fixed middle-left anchor and map winning bar -> bucket_i.
+    bs_target = chart.get_center() + LEFT * 5.2 + UP * 0.15
+    bs_mob = MathTex(r"bs \cdot", font_size=34, color=GOLD).move_to(bs_target)
+    scene.play(TransformFromCopy(formula[2], bs_mob), run_time=0.65)
+
+    bucket_box = text_box(
+        "bucket_i", box_color=PURPLE_B, text_color=WHITE, w=1.9, h=0.58, font_size=22
+    )
+    bucket_box.next_to(bs_mob, RIGHT, buff=0.1)
+    bar_to_bucket = Arrow(
+        bar_group[2].get_left() + UP * 0.10,
+        bucket_box.get_right(),
+        buff=0.08,
+        stroke_width=3,
+        color=YELLOW_A,
+    )
+    bar_group[2].set_fill(YELLOW, opacity=0.90)
+    bar_group[2].set_stroke(YELLOW_A, width=2.5)
+
+    scene.play(
+        Indicate(bar_group[2], color=YELLOW, scale_factor=1.12),
+    )
+    scene.wait(0.5)
+    scene.play(GrowArrow(bar_to_bucket), FadeIn(bucket_box), run_time=0.6)
+    scene.wait(0.3)
+
+    bs_bucket_group = VGroup(bs_mob, bucket_box)
+    # Entire chart collapses → "Estimated Length: 250 tokens" blue box
+    est_box = text_box(
+        "Estimated Length",
+        box_color=BLUE_D,
+        text_color=WHITE,
+        w=3,
+        h=0.72,
+        font_size=20,
+    )
+    est_box.move_to(bs_bucket_group.get_center())
+
+    scene.play(
+        FadeOut(VGroup(chart, x_axis_lbl, bs_mob, bucket_box, bar_to_bucket)),
+        Transform(
+            bs_bucket_group,
+            est_box,
+            replace_mobject_with_target_in_scene=True,
+        ),
+        FadeOut(bar_to_bucket),
+        run_time=0.80,
+    )
+    scene.play(
+        Flash(est_box.get_center(), color=BLUE_A, flash_radius=0.65, line_length=0.24)
+    )
+    scene.wait(0.3)
+
+    # est box go to l^pred in formula
+    scene.play(
+        est_box.animate.move_to(formula[0].get_center()).scale(0.55).set_opacity(0),
+        formula[0].animate.set_opacity(1.0).set_color(GREEN_D),
+        formula[1].animate.set_opacity(1.0).set_color(GREEN_D),
+    )
+    scene.play(
+        Flash(
+            formula[0].get_center(), color=GREEN_A, flash_radius=0.5, line_length=0.18
+        )
+    )
+    scene.wait(1)
+
+    scene.play(
+        formula.animate.scale(1.3).move_to(ORIGIN),
+        FadeOut(full_chart),
+    )
+
+    scene.wait(1)
 
 
 def play_scene10_retrieval_augmentation(scene):

@@ -63,3 +63,24 @@ def capability_prediction():
         r"\Bigr)",  # [12]
         font_size=52,
     )
+
+
+def length_prediction():
+    return MathTex(
+        r"l^{pred}_{i,j}",  # [0]  LHS
+        r"=",  # [1]
+        r"bs",  # [2]  bucket size
+        r"\cdot",  # [3]
+        r"\mathrm{softmax}",  # [4]  softmax
+        r"\Bigl(",  # [5]
+        r"W_2",  # [6]
+        r"(",  # [7]
+        r"E_q^i",  # [8]
+        r"+",  # [9]
+        r"E_l^j",  # [10]
+        r")",  # [11]
+        r"+",  # [12]
+        r"b_2",  # [13]
+        r"\Bigr)",  # [14]
+        font_size=50,
+    )
