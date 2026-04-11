@@ -734,70 +734,397 @@ def play_scene10_retrieval_augmentation(scene):
 
 
 def play_scene11_fusion(scene):
-    title = Text("Prediction + Retrieval Fusion", font_size=48).to_edge(UP)
-    eq1 = (
-        MathTex(r"a_{i,j}=\gamma a^{pred}_{i,j} + (1-\gamma)a^{ret}_{i,j}")
-        .scale(0.86)
-        .next_to(title, DOWN, buff=0.45)
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 1  (0s – 12s): Title + two-column recap
+    # ══════════════════════════════════════════════════════════════════════
+    title = Text("Fusion", font_size=42).to_edge(UP, buff=0.45)
+    scene.play(FadeIn(title, shift=DOWN * 0.2))
+
+    # ── Left column: Neural Net (prediction) ─────────────────────────────
+    nn_icon = RoundedRectangle(
+        width=2.2,
+        height=1.1,
+        corner_radius=0.14,
+        color=BLUE_B,
+        fill_color=BLUE_E,
+        fill_opacity=0.30,
+        stroke_width=2,
     )
-    eq2 = (
-        MathTex(r"c_{i,j}=\delta\,c^{pred}_{i,j} + (1-\delta)\,c^{ret}_{i,j}")
-        .scale(0.86)
-        .next_to(eq1, DOWN, buff=0.35)
+    nn_lbl = Text("Neural Net", font_size=20, color=BLUE_B).move_to(nn_icon)
+    nn_group = VGroup(nn_icon, nn_lbl).move_to(LEFT * 3.5 + UP * 1.2)
+
+    pred_a = MathTex(r"a^{pred}_{i,j}", font_size=30, color=BLUE_A)
+    pred_l = MathTex(r"l^{pred}_{i,j}", font_size=30, color=BLUE_A)
+    pred_vals = VGroup(pred_a, pred_l).arrange(DOWN, buff=0.30)
+    pred_vals.next_to(nn_group, DOWN, buff=0.28)
+
+    # ── Right column: Vector DB (retrieval) ──────────────────────────────
+    db_icon = RoundedRectangle(
+        width=2.2,
+        height=1.1,
+        corner_radius=0.14,
+        color=TEAL_B,
+        fill_color=TEAL_E,
+        fill_opacity=0.30,
+        stroke_width=2,
+    )
+    db_lbl = Text("Vector DB", font_size=20, color=TEAL_B).move_to(db_icon)
+    db_group = VGroup(db_icon, db_lbl).move_to(RIGHT * 3.5 + UP * 1.2)
+
+    ret_a = MathTex(r"a^{ret}_{i,j}", font_size=30, color=TEAL_A)
+    ret_l = MathTex(r"l^{ret}_{i,j}", font_size=30, color=TEAL_A)
+    ret_vals = VGroup(ret_a, ret_l).arrange(DOWN, buff=0.30)
+    ret_vals.next_to(db_group, DOWN, buff=0.28)
+
+    # VS divider
+    vs_lbl = Text("vs", font_size=26, color=GREY_A).move_to(ORIGIN + UP * 1.2)
+
+    scene.play(
+        FadeIn(nn_group),
+        FadeIn(db_group),
+        FadeIn(vs_lbl),
+        run_time=0.7,
+    )
+    scene.play(
+        FadeIn(pred_vals, shift=UP * 0.15),
+        FadeIn(ret_vals, shift=UP * 0.15),
+        run_time=0.7,
+    )
+    scene.wait(0.6)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 2: Capability formula + gamma slider
+    # ══════════════════════════════════════════════════════════════════════
+    scene.play(
+        Indicate(pred_a, color=BLUE),
+        Indicate(ret_a, color=BLUE),
     )
 
-    gamma = ValueTracker(0.2)
-    delta = ValueTracker(0.7)
-    gamma_bar = NumberLine(x_range=[0, 1, 0.2], length=4.2, include_numbers=False)
-    delta_bar = NumberLine(x_range=[0, 1, 0.2], length=4.2, include_numbers=False)
-    gamma_bar.next_to(eq2, DOWN, buff=0.55)
-    delta_bar.next_to(gamma_bar, DOWN, buff=0.45)
+    # Formula a_ij
+    eq_a = formulas.fused_capability().move_to(UP * 0.6)
+
+    # Dim the recap, bring a^pred and a^ret toward centre
+    scene.play(
+        nn_group.animate.set_opacity(0.20),
+        db_group.animate.set_opacity(0.20),
+        vs_lbl.animate.set_opacity(0.20),
+        pred_l.animate.set_opacity(0.20),
+        ret_l.animate.set_opacity(0.20),
+        pred_a.animate.set_opacity(0).move_to(eq_a[3]),
+        ret_a.animate.set_opacity(0).move_to(eq_a[7]),
+        Write(eq_a),
+        run_time=0.8,
+    )
+
+    eq_a[3].set_color(BLUE)
+    eq_a[7].set_color(BLUE)
+    scene.play(
+        Indicate(eq_a[3], color=BLUE),
+        Indicate(eq_a[7], color=BLUE),
+    )
+
+    # Gamma slider
+    gamma = ValueTracker(0.5)
+    SLIDER_Y = -0.30
+    slider_a = NumberLine(
+        x_range=[0, 1, 1], length=5.5, include_numbers=False, color=GREY_B
+    )
+    slider_a.move_to([0, SLIDER_Y, 0])
+
+    # Labels at each end
+    pred_end_lbl = Text("Prediction", font_size=15, color=BLUE_A).next_to(
+        slider_a.get_left(), DOWN, buff=0.12
+    )
+    ret_end_lbl = Text("Retrieval", font_size=15, color=TEAL_A).next_to(
+        slider_a.get_right(), DOWN, buff=0.12
+    )
+
     gamma_dot = always_redraw(
-        lambda: Dot(gamma_bar.n2p(gamma.get_value()), color=YELLOW)
+        lambda: Dot(slider_a.n2p(gamma.get_value()), radius=0.13, color=YELLOW)
     )
-    delta_dot = always_redraw(
-        lambda: Dot(delta_bar.n2p(delta.get_value()), color=ORANGE)
-    )
-    gamma_text = always_redraw(
-        lambda: VGroup(
-            Text("gamma", font_size=22),
-            DecimalNumber(gamma.get_value(), num_decimal_places=2),
-        )
-        .arrange(RIGHT, buff=0.15)
-        .next_to(gamma_bar, RIGHT, buff=0.2)
-    )
-    delta_text = always_redraw(
-        lambda: VGroup(
-            Text("delta", font_size=22),
-            DecimalNumber(delta.get_value(), num_decimal_places=2),
-        )
-        .arrange(RIGHT, buff=0.15)
-        .next_to(delta_bar, RIGHT, buff=0.2)
-    )
-    out_a = always_redraw(
-        lambda: DecimalNumber(
-            gamma.get_value() * 0.92 + (1 - gamma.get_value()) * 0.64,
-            num_decimal_places=3,
-            color=YELLOW,
-        ).next_to(eq1, RIGHT, buff=0.35)
-    )
-    out_c = always_redraw(
-        lambda: DecimalNumber(
-            delta.get_value() * 1.45 + (1 - delta.get_value()) * 0.95,
-            num_decimal_places=3,
-            color=ORANGE,
-        ).next_to(eq2, RIGHT, buff=0.35)
+    gamma_lbl = always_redraw(
+        lambda: MathTex(
+            rf"\gamma = {gamma.get_value():.2f}", font_size=24, color=YELLOW
+        ).next_to(slider_a, UP, buff=0.18)
     )
 
-    scene.play(FadeIn(title), FadeIn(eq1), FadeIn(eq2))
     scene.play(
-        Create(gamma_bar), Create(delta_bar), FadeIn(gamma_dot), FadeIn(delta_dot)
+        Create(slider_a),
+        FadeIn(pred_end_lbl),
+        FadeIn(ret_end_lbl),
+        FadeIn(gamma_dot),
+        FadeIn(gamma_lbl),
+        run_time=0.7,
     )
-    scene.play(FadeIn(gamma_text), FadeIn(delta_text), FadeIn(out_a), FadeIn(out_c))
+    eq_a[2].set_color(YELLOW)
+    eq_a[5].set_color(YELLOW)
     scene.play(
-        gamma.animate.set_value(0.82), delta.animate.set_value(0.25), run_time=2.0
+        Indicate(
+            VGroup(
+                gamma_lbl,
+                eq_a[2],
+                eq_a[5],
+            )
+        )
+    )
+
+    intro_gamma_box = text_box("Learnable Parameter", w=3.4).shift(RIGHT + UP * 2)
+    intro_gamma_line = DashedLine(
+        gamma_lbl.get_top(), intro_gamma_box.get_bottom(), buff=0.1
+    )
+    surround_gamma_lbl_rect = SurroundingRectangle(gamma_lbl, color=WHITE)
+    scene.play(
+        FadeIn(
+            VGroup(
+                intro_gamma_box,
+                intro_gamma_line,
+                surround_gamma_lbl_rect,
+            )
+        )
+    )
+    scene.wait(2)
+    scene.play(
+        FadeOut(
+            VGroup(
+                intro_gamma_box,
+                intro_gamma_line,
+                surround_gamma_lbl_rect,
+            )
+        )
+    )
+
+    # Slide gamma: lean toward prediction, then retrieval, then settle at 0.6
+    scene.play(gamma.animate.set_value(0.85), run_time=1.1)
+    scene.play(gamma.animate.set_value(0.20), run_time=1.1)
+    scene.play(gamma.animate.set_value(0.60), run_time=0.8)
+    scene.wait(0.4)
+
+    scene.play(
+        Flash(eq_a[0].get_center(), color=GREEN_A, flash_radius=0.5, line_length=0.18)
+    )
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 3: Cost formula + tp_j price table + delta slider
+    # ══════════════════════════════════════════════════════════════════════
+    # Fade out capability content, bring length variables to centre
+    scene.play(
+        FadeOut(
+            VGroup(
+                eq_a,
+                slider_a,
+                gamma_dot,
+                gamma_lbl,
+                pred_end_lbl,
+                ret_end_lbl,
+                pred_a,
+                ret_a,
+            )
+        ),
+        nn_group.animate.set_opacity(1),
+        db_group.animate.set_opacity(1),
+        vs_lbl.animate.set_opacity(1),
+        pred_l.animate.set_opacity(1),
+        ret_l.animate.set_opacity(1),
+        run_time=0.8,
+    )
+
+    # Formula c_ij
+    eq_c = formulas.fused_length().move_to(UP * 0.6)
+
+    scene.play(
+        Indicate(
+            VGroup(
+                pred_l,
+                ret_l,
+            ),
+            color=BLUE,
+        )
+    )
+
+    scene.play(
+        nn_group.animate.set_opacity(0.20),
+        db_group.animate.set_opacity(0.20),
+        vs_lbl.animate.set_opacity(0.20),
+        pred_l.animate.set_opacity(0).move_to(eq_c[5]),
+        ret_l.animate.set_opacity(0).move_to(eq_c[12]),
+        Write(eq_c),
+        run_time=1.4,
+    )
+    eq_c[5].set_color(BLUE)
+    eq_c[12].set_color(BLUE)
+    scene.play(
+        Indicate(
+            VGroup(
+                eq_c[5],
+                eq_c[12],
+            ),
+            color=BLUE,
+        )
+    )
+    scene.wait(1)
+
+    # Highlight tp_j and pull out price table
+    eq_c[4].set_color(GOLD)
+    eq_c[6].set_color(GOLD)
+    eq_c[11].set_color(GOLD)
+    eq_c[13].set_color(GOLD)
+    scene.play(
+        Indicate(
+            VGroup(
+                eq_c[4],
+                eq_c[6],
+                eq_c[11],
+                eq_c[13],
+            ),
+            color=GOLD,
+        ),
+    )
+
+    price_rows = VGroup(
+        Text("GPT-4o:   $10 / 1M tokens", font_size=16, color=GREY_A),
+        Text("Claude 3: $ 3 / 1M tokens", font_size=16, color=GREY_A),
+        Text("Llama-3:  $0.5/ 1M tokens", font_size=16, color=GREY_A),
+    ).arrange(DOWN, aligned_edge=LEFT, buff=0.16)
+    price_box_rect = SurroundingRectangle(
+        price_rows, color=GOLD, buff=0.18, corner_radius=0.10, stroke_width=1.8
+    )
+    price_header = Text("Token Price", font_size=17, color=GOLD)
+    price_header.next_to(price_box_rect, UP, buff=0.08)
+    price_widget = VGroup(price_box_rect, price_rows, price_header)
+    price_widget.next_to(eq_c, DOWN * 2, buff=0.38)
+
+    tp_arrow_1 = Arrow(
+        eq_c[4].get_bottom(),
+        price_widget.get_top(),
+        buff=0.10,
+        stroke_width=2.2,
+        color=GOLD,
+        max_tip_length_to_length_ratio=0.22,
+    )
+    tp_arrow_2 = Arrow(
+        eq_c[11].get_bottom(),
+        price_widget.get_top(),
+        buff=0.10,
+        stroke_width=2.2,
+        color=GOLD,
+        max_tip_length_to_length_ratio=0.22,
     )
     scene.play(
-        gamma.animate.set_value(0.45), delta.animate.set_value(0.75), run_time=2.0
+        GrowArrow(tp_arrow_1),
+        GrowArrow(tp_arrow_2),
+        FadeIn(price_widget, shift=UP * 0.12),
     )
-    scene.wait(1.0)
+    scene.wait(0.5)
+
+    # # Delta slider
+    # delta = ValueTracker(0.5)
+    # SLIDER2_Y = price_widget.get_bottom()[1] - 0.55
+    # slider_c = NumberLine(
+    #     x_range=[0, 1, 1], length=5.5, include_numbers=False, color=GREY_B
+    # )
+    # slider_c.move_to([0, SLIDER2_Y, 0])
+
+    # pred_end_lbl2 = Text("Prediction", font_size=15, color=BLUE_A).next_to(
+    #     slider_c.get_left(), DOWN, buff=0.12
+    # )
+    # ret_end_lbl2 = Text("Retrieval", font_size=15, color=TEAL_A).next_to(
+    #     slider_c.get_right(), DOWN, buff=0.12
+    # )
+
+    # delta_dot = always_redraw(
+    #     lambda: Dot(slider_c.n2p(delta.get_value()), radius=0.13, color=ORANGE)
+    # )
+    # delta_lbl = always_redraw(
+    #     lambda: MathTex(
+    #         rf"\delta = {delta.get_value():.2f}", font_size=24, color=ORANGE
+    #     ).next_to(slider_c, UP, buff=0.18)
+    # )
+
+    # scene.play(
+    #     Create(slider_c),
+    #     FadeIn(pred_end_lbl2),
+    #     FadeIn(ret_end_lbl2),
+    #     FadeIn(delta_dot),
+    #     FadeIn(delta_lbl),
+    #     run_time=0.7,
+    # )
+
+    # scene.play(delta.animate.set_value(0.80), run_time=1.0)
+    # scene.play(delta.animate.set_value(0.30), run_time=1.0)
+    # scene.play(delta.animate.set_value(0.55), run_time=0.7)
+    # scene.wait(0.3)
+
+    # # Collapse to Final Cost box
+    # final_c_box = text_box(
+    #     r"c_{i,j}  (Final Cost)", box_color=GOLD, text_color=WHITE, font_size=21, w=3.0
+    # )
+    # final_c_box.next_to(slider_c, DOWN, buff=0.45)
+    # scene.play(FadeIn(final_c_box, shift=UP * 0.12))
+    # scene.wait(0.4)
+
+    # # ══════════════════════════════════════════════════════════════════════
+    # #  ACT 4  (40s – 45s): Zoom out to two glowing output boxes → To Optimizer
+    # # ══════════════════════════════════════════════════════════════════════
+    # scene.play(
+    #     FadeOut(
+    #         VGroup(
+    #             eq_c,
+    #             tp_arrow,
+    #             price_widget,
+    #             slider_c,
+    #             delta_dot,
+    #             delta_lbl,
+    #             pred_end_lbl2,
+    #             ret_end_lbl2,
+    #             pred_l,
+    #             ret_l,
+    #             nn_group,
+    #             db_group,
+    #             vs_lbl,
+    #         )
+    #     ),
+    #     run_time=0.7,
+    # )
+
+    # # Re-create the two output boxes centred
+    # box_a = text_box(
+    #     "a_{i,j}   Final Capability", box_color=GREEN_D, font_size=22, w=3.5, h=0.85
+    # )
+    # box_c = text_box(
+    #     "c_{i,j}   Final Cost", box_color=GOLD, font_size=22, w=3.5, h=0.85
+    # )
+    # outputs = VGroup(box_a, box_c).arrange(RIGHT, buff=0.9)
+    # outputs.move_to(ORIGIN + DOWN * 0.2)
+
+    # scene.play(
+    #     FadeIn(box_a, shift=UP * 0.2),
+    #     FadeIn(box_c, shift=UP * 0.2),
+    #     run_time=0.8,
+    # )
+    # scene.play(
+    #     Flash(box_a.get_center(), color=GREEN_A, flash_radius=0.7, line_length=0.25),
+    #     Flash(box_c.get_center(), color=GOLD, flash_radius=0.7, line_length=0.25),
+    # )
+
+    # # "To Optimizer →" arrow
+    # to_opt = VGroup(
+    #     Text("To Optimizer", font_size=26, color=WHITE),
+    #     MathTex(r"\rightarrow", font_size=36, color=WHITE),
+    # ).arrange(RIGHT, buff=0.18)
+    # to_opt.next_to(outputs, RIGHT, buff=0.55)
+    # to_opt_arr = Arrow(
+    #     outputs.get_right(),
+    #     to_opt.get_left() + LEFT * 0.1,
+    #     buff=0.10,
+    #     stroke_width=3.5,
+    #     color=WHITE,
+    # )
+
+    # scene.play(GrowArrow(to_opt_arr), FadeIn(to_opt, shift=LEFT * 0.15))
+    # scene.play(
+    #     to_opt.animate.set_color(YELLOW),
+    #     to_opt_arr.animate.set_color(YELLOW),
+    #     run_time=0.5,
+    # )
+
+    # scene.wait(1.5)

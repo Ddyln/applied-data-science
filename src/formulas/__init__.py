@@ -98,3 +98,37 @@ def retrieval_capability():
         r"a^{ret}_{i,j} = \frac{\sum_{q_m \in \mathcal{Q}_k}\mathrm{sim}(E_q^i, E_{q_m})\cdot\, a_{m,j}}{\sum_{q_m \in Q_k}\mathrm{sim}(E_q^i, E_{q_m})}",
         font_size=34,
     )
+
+
+def fused_capability():
+    return MathTex(
+        r"a_{i,j}",  # [0]
+        r"=",  # [1]
+        r"\gamma",  # [2]
+        r"a^{pred}_{i,j}",  # [3]
+        r"+ (1-",  # [4]
+        r"\gamma",  # [5]
+        r")",  # [6]
+        r"a^{ret}_{i,j}",  # [7]
+        font_size=38,
+    )
+
+
+def fused_length():
+    return MathTex(
+        r"c_{i,j}",  # [0]
+        r"=",  # [1]
+        r"\delta",  # [2]
+        r"\cdot ",  # [3]
+        r"tp_j(",  # [4]
+        r"l^{pred}_{i,j}",  # [5]
+        r")",  # [6]
+        r"+(1-",  # [7]
+        r"\delta",  # [8]
+        r")",  # [9]
+        r"\cdot ",  # [10]
+        r"tp_j(",  # [11]
+        r"l^{ret}_{i,j}",  # [12]
+        r")",  # [13]
+        font_size=35,
+    )
