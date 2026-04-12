@@ -170,19 +170,19 @@ def play_scene03_greedy_fails(scene):
 
     scene.play(FadeIn(title), FadeIn(subtitle))
     scene.play(staggered_fade_in(*models))
-    scene.wait(1)
+    scene.wait(3)
     scene.play(staggered_fade_in(queries[0]))
     scene.play(
         Indicate(queries[0]),
         # FadeIn(first_arrival),
     )
     scene.play(Indicate(models[1], color=YELLOW), FadeIn(easy_selection_note))
-    scene.wait(0.5)
+    scene.wait(1.5)
     scene.play(FadeIn(bad_assign_easy))
     # scene.play(bad_assign_easy.animate.set_color(YELLOW), FadeIn(easy_arrow_note))
     # scene.play(Indicate(bad_assign_easy, color=YELLOW))
     scene.play(FadeOut(easy_selection_note))
-    scene.wait(0.5)
+    scene.wait(1.5)
     scene.play(staggered_fade_in(queries[1]))
     scene.play(Indicate(queries[1]), FadeIn(hard_selection_note))
     scene.wait(0.5)
@@ -207,7 +207,7 @@ def play_scene03_greedy_fails(scene):
         "bad_assign_hard": bad_assign_hard,
         "weakness": weakness,
     }
-    scene.wait(5)
+    scene.wait(10)
 
 
 def play_scene04_omnirouter_idea(scene):

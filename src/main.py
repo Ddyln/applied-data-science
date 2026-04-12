@@ -1,8 +1,6 @@
 """Single-scene entrypoint for the full OmniRouter walkthrough."""
 
 from manim import *
-from manim_voiceover import VoiceoverScene
-from manim_voiceover.services.gtts import GTTSService
 
 from scenes.formulation import (
     play_scene05_problem_formulation,
@@ -33,29 +31,27 @@ from scenes.results import play_scene17_results, play_scene18_conclusion
 KEEP_STAGE_AFTER_STEPS = [play_scene03_greedy_fails]
 
 
-class OmniRouter(VoiceoverScene):
+class OmniRouter(Scene):
     def construct(self):
-        self.set_speech_service(GTTSService())
-
         steps = (
             play_scene00_intro,
             play_scene01_hook_too_many_llms,
-            # play_scene02_what_is_routing,
-            # play_scene03_greedy_fails,
-            # play_scene04_omnirouter_idea,
-            # play_scene05_problem_formulation,
-            # play_scene06_two_stage_framework,
-            # play_scene08_capability_prediction,
-            # play_scene09_length_prediction,
-            # play_scene10_retrieval_augmentation,
-            # play_scene11_fusion,
-            # play_scene12_lagrangian,
-            # play_scene13_optimality_condition,
-            # play_scene14_decision_rule,
-            # play_scene15_dual_updates,
+            play_scene02_what_is_routing,
+            play_scene03_greedy_fails,
+            play_scene04_omnirouter_idea,
+            play_scene05_problem_formulation,
+            play_scene06_two_stage_framework,
+            play_scene08_capability_prediction,
+            play_scene09_length_prediction,
+            play_scene10_retrieval_augmentation,
+            play_scene11_fusion,
+            play_scene12_lagrangian,
+            play_scene13_optimality_condition,
+            play_scene14_decision_rule,
+            play_scene15_dual_updates,
             # play_scene16_dual_intuition,
-            # play_scene17_results,
-            # play_scene18_conclusion,
+            play_scene17_results,
+            play_scene18_conclusion,
         )
 
         for step in steps:

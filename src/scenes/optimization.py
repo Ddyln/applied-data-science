@@ -203,7 +203,7 @@ def play_scene12_lagrangian(scene):
 
     # Shrink and surround with glowing rect
     scene.play(
-        full_lagrangian.animate.scale(0.80).move_to(ORIGIN + UP * 0.4),
+        full_lagrangian.animate.move_to(ORIGIN),
         FadeOut(
             VGroup(
                 link_arrows,
@@ -225,22 +225,22 @@ def play_scene12_lagrangian(scene):
     scene.play(Create(glow_rect), run_time=0.6)
     scene.play(glow_rect.animate.set_stroke(opacity=0.55), run_time=0.4)
 
-    # "Minimize L" label below
-    min_lbl = MathTex(r"\text{Minimize}\;\mathcal{L}", font_size=40, color=GOLD)
-    min_lbl.next_to(glow_rect, DOWN, buff=0.35)
-    scene.play(FadeIn(min_lbl, shift=UP * 0.15))
+    # # "Minimize L" label below
+    # min_lbl = MathTex(r"\text{Minimize}\;\mathcal{L}", font_size=40, color=GOLD)
+    # min_lbl.next_to(glow_rect, DOWN, buff=0.35)
+    # scene.play(FadeIn(min_lbl, shift=UP * 0.15))
 
-    # x_{i,j} with a blinking question mark → "how to find x?"
-    x_lbl = MathTex(r"x_{i,j}", font_size=34, color=WHITE)
-    q_mark = MathTex(r"?", font_size=38, color=YELLOW)
-    x_lbl.next_to(min_lbl, RIGHT, buff=0.55)
-    q_mark.next_to(x_lbl, RIGHT, buff=0.10)
-    scene.play(FadeIn(x_lbl), FadeIn(q_mark))
+    # # x_{i,j} with a blinking question mark → "how to find x?"
+    # x_lbl = MathTex(r"x_{i,j}", font_size=34, color=WHITE)
+    # q_mark = MathTex(r"?", font_size=38, color=YELLOW)
+    # x_lbl.next_to(min_lbl, RIGHT, buff=0.55)
+    # q_mark.next_to(x_lbl, RIGHT, buff=0.10)
+    # scene.play(FadeIn(x_lbl), FadeIn(q_mark))
 
     # Blink the question mark 3 times
-    for _ in range(3):
-        scene.play(q_mark.animate.set_opacity(0.0), run_time=0.25)
-        scene.play(q_mark.animate.set_opacity(1.0), run_time=0.25)
+    # for _ in range(3):
+    #     scene.play(q_mark.animate.set_opacity(0.0), run_time=0.25)
+    #     scene.play(q_mark.animate.set_opacity(1.0), run_time=0.25)
 
     scene.wait(1.2)
 
@@ -463,22 +463,22 @@ def play_scene13_optimality_condition(scene):
     scene.play(Indicate(final_eq[6], color=RED_A, scale_factor=1.30), run_time=0.55)
     scene.play(Indicate(final_eq[6], color=RED_A, scale_factor=1.30), run_time=0.55)
 
-    # Annotation
-    annot = Text(
-        "Marginal Net Cost = 0  (optimality balance)", font_size=17, color=GREY_A
-    )
-    annot.next_to(glow_rect, DOWN, buff=0.30)
-    scene.play(FadeIn(annot, shift=UP * 0.1))
+    # # Annotation
+    # annot = Text(
+    #     "Marginal Net Cost = 0  (optimality balance)", font_size=17, color=GREY_A
+    # )
+    # annot.next_to(glow_rect, DOWN, buff=0.30)
+    # scene.play(FadeIn(annot, shift=UP * 0.1))
 
-    # Tease scene 14
-    mu_hint = MathTex(
-        r"\mu_i \text{ cancels} \;\rightarrow\; \text{Scene 14}",
-        font_size=20,
-        color=GREEN_B,
-    )
-    mu_hint.next_to(annot, DOWN, buff=0.20)
-    scene.play(FadeIn(mu_hint, shift=UP * 0.1))
-    scene.play(Indicate(final_eq[5], color=GREEN_B, scale_factor=1.25), run_time=0.55)
+    # # Tease scene 14
+    # mu_hint = MathTex(
+    #     r"\mu_i \text{ cancels} \;\rightarrow\; \text{Scene 14}",
+    #     font_size=20,
+    #     color=GREEN_B,
+    # )
+    # mu_hint.next_to(annot, DOWN, buff=0.20)
+    # scene.play(FadeIn(mu_hint, shift=UP * 0.1))
+    # scene.play(Indicate(final_eq[5], color=GREEN_B, scale_factor=1.25), run_time=0.55)
 
     scene.wait(1.5)
 
@@ -776,136 +776,444 @@ def play_scene14_decision_rule(scene):
 
 
 def play_scene15_dual_updates(scene):
-    title = Text("Dual Variable Updates", font_size=48).to_edge(UP)
-    eq1 = MathTex(
-        r"\lambda_1^{t+1}=\max\!\left(\lambda_1^t+\eta_1\left(\alpha-\frac{1}{N}\sum_{i,j}a_{i,j}x_{i,j}\right),0\right)"
-    ).scale(0.72)
-    eq2 = MathTex(
-        r"\lambda_{2,j}^{t+1}=\max\!\left(\lambda_{2,j}^t+\eta_2\left(\sum_i x_{i,j}-L_j\right),0\right)"
-    ).scale(0.74)
-    eq2.next_to(eq1, DOWN, buff=0.28)
-    eq_group = VGroup(eq1, eq2).to_edge(LEFT, buff=0.5).shift(DOWN * 0.2)
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 1  (0s – 15s): Title + iterative time loop
+    # ══════════════════════════════════════════════════════════════════════
+    title = Text("Dual Updates  (Gradient Ascent)", font_size=38).to_edge(UP, buff=0.45)
+    scene.play(FadeIn(title, shift=DOWN * 0.2))
 
-    quality_label = (
-        Text("Average Quality", font_size=24).to_edge(RIGHT, buff=1.2).shift(UP * 1.4)
-    )
-    quality_bar = Rectangle(width=0.5, height=2.2, stroke_color=WHITE).next_to(
-        quality_label, DOWN, buff=0.2
-    )
-    quality_fill = Rectangle(
-        width=0.5, height=1.0, fill_color=GREEN_E, fill_opacity=0.9, stroke_width=0
-    )
-    quality_fill.move_to(quality_bar.get_bottom() + UP * 0.5)
-    alpha_line = DashedLine(
-        quality_bar.get_left() + UP * 1.45,
-        quality_bar.get_right() + UP * 1.45,
+    # Iterative time display  t = 0 → 1 → 2 → …
+    t_label = MathTex(r"t = 0", font_size=44, color=YELLOW).move_to(ORIGIN)
+    scene.play(Write(t_label))
+    for t in range(1, 4):
+        new_t = MathTex(rf"t = {t}", font_size=44, color=YELLOW).move_to(ORIGIN)
+        scene.play(Transform(t_label, new_t), run_time=0.45)
+    dots = MathTex(
+        r"t = 0 \;\rightarrow\; 1 \;\rightarrow\; 2 \;\rightarrow\; \cdots",
+        font_size=34,
         color=YELLOW,
-    )
-    alpha_tag = MathTex(r"\alpha").scale(0.7).next_to(alpha_line, RIGHT, buff=0.08)
+    ).move_to(ORIGIN)
+    scene.play(Transform(t_label, dots), run_time=0.6)
+    scene.wait(0.4)
+    scene.play(FadeOut(t_label), run_time=0.5)
 
-    lambda1 = DecimalNumber(0.2, num_decimal_places=2, color=YELLOW).next_to(
-        quality_bar, RIGHT, buff=0.35
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 2  (15s – 35s): λ₁ update formula (quality penalty)
+    # ══════════════════════════════════════════════════════════════════════
+    # Formula WITHOUT max() first — we add it later
+    eq1_no_max = MathTex(
+        r"\lambda_1^{t+1}",  # [0]
+        r"=",  # [1]
+        r"\lambda_1^t",  # [2]
+        r"+",  # [3]
+        r"\eta_1",  # [4]  ← Indicate (learning rate)
+        r"\left(\alpha - \frac{1}{N}\sum_{i,j} a_{i,j}\,x_{i,j}\right)",  # [5] ← Indicate (violation)
+        font_size=36,
     )
-    lambda1_tag = MathTex(r"\lambda_1").scale(0.8).next_to(lambda1, UP, buff=0.08)
+    eq1_no_max[0].set_color(BLUE_B)
+    eq1_no_max[2].set_color(BLUE_B)
+    eq1_no_max[4].set_color(YELLOW)
+    eq1_no_max[5].set_color(BLUE_B)
+    eq1_no_max.move_to(UP * 1.2)
 
-    cap_label = (
-        Text("Model 1 Load", font_size=24).to_edge(RIGHT, buff=1.2).shift(DOWN * 1.2)
-    )
-    cap_bar = Rectangle(width=2.2, height=0.45, stroke_color=WHITE).next_to(
-        cap_label, DOWN, buff=0.2
-    )
-    cap_fill = Rectangle(
-        width=1.4, height=0.45, fill_color=BLUE_E, fill_opacity=0.9, stroke_width=0
-    )
-    cap_fill.move_to(cap_bar.get_left() + RIGHT * 0.7)
-    limit_line = DashedLine(
-        cap_bar.get_left() + RIGHT * 1.4 + UP * 0.28,
-        cap_bar.get_left() + RIGHT * 1.4 + DOWN * 0.28,
+    scene.play(Write(eq1_no_max), run_time=1.4)
+
+    # Annotate η₁ → "Learning Rate"
+    eta1_annot = Text("Learning Rate / Step size", font_size=16, color=YELLOW)
+    eta1_arr = Arrow(
+        eq1_no_max[4].get_bottom() + DOWN * 0.05,
+        eq1_no_max[4].get_bottom() + DOWN * 0.55,
+        buff=0.0,
+        stroke_width=2,
         color=YELLOW,
+        max_tip_length_to_length_ratio=0.30,
     )
-    limit_tag = MathTex(r"L_j").scale(0.7).next_to(limit_line, DOWN, buff=0.07)
+    eta1_annot.next_to(eta1_arr, DOWN, buff=0.06)
+    scene.play(Indicate(eq1_no_max[4], color=YELLOW, scale_factor=1.35), run_time=0.55)
+    scene.play(GrowArrow(eta1_arr), FadeIn(eta1_annot))
+    scene.wait(0.3)
 
-    lambda2 = DecimalNumber(0.15, num_decimal_places=2, color=ORANGE).next_to(
-        cap_bar, RIGHT, buff=0.35
+    # Annotate (α − …) → "Quality Violation (Gradient)"
+    viol1_annot = Text("Quality Violation  (Gradient)", font_size=16, color=BLUE_B)
+    viol1_arr = Arrow(
+        eq1_no_max[5].get_bottom() + DOWN * 0.05,
+        eq1_no_max[5].get_bottom() + DOWN * 0.55,
+        buff=0.0,
+        stroke_width=2,
+        color=BLUE_B,
+        max_tip_length_to_length_ratio=0.30,
     )
-    lambda2_tag = MathTex(r"\lambda_{2,j}").scale(0.8).next_to(lambda2, UP, buff=0.08)
+    viol1_annot.next_to(viol1_arr, DOWN, buff=0.06)
+    scene.play(Indicate(eq1_no_max[5], color=BLUE_B, scale_factor=1.12), run_time=0.55)
+    scene.play(GrowArrow(viol1_arr), FadeIn(viol1_annot))
+    scene.wait(0.4)
 
-    scene.play(FadeIn(title), FadeIn(eq_group))
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 3  (35s – 45s): λ_{2,j} update formula (capacity penalty)
+    # ══════════════════════════════════════════════════════════════════════
     scene.play(
-        FadeIn(
-            VGroup(
-                quality_label,
-                quality_bar,
-                quality_fill,
-                alpha_line,
-                alpha_tag,
-                lambda1,
-                lambda1_tag,
-            )
-        )
+        FadeOut(VGroup(eta1_arr, eta1_annot, viol1_arr, viol1_annot)),
+        eq1_no_max.animate.scale(0.82).move_to(UP * 2.0),
+        run_time=0.6,
     )
+
+    eq2_no_max = MathTex(
+        r"\lambda_{2,j}^{t+1}",  # [0]
+        r"=",  # [1]
+        r"\lambda_{2,j}^t",  # [2]
+        r"+",  # [3]
+        r"\eta_2",  # [4]  ← Indicate
+        r"\left(\sum_i x_{i,j} - L_j\right)",  # [5]  ← Indicate
+        font_size=36,
+    )
+    eq2_no_max[0].set_color(RED_B)
+    eq2_no_max[2].set_color(RED_B)
+    eq2_no_max[4].set_color(YELLOW)
+    eq2_no_max[5].set_color(RED_B)
+    eq2_no_max.move_to(DOWN * 0.0)
+
+    scene.play(Write(eq2_no_max), run_time=1.2)
+
+    # Annotate (Σ x − L_j) → "Capacity Violation"
+    viol2_annot = Text("Capacity Violation", font_size=16, color=RED_B)
+    viol2_arr = Arrow(
+        eq2_no_max[5].get_bottom() + DOWN * 0.05,
+        eq2_no_max[5].get_bottom() + DOWN * 0.55,
+        buff=0.0,
+        stroke_width=2,
+        color=RED_B,
+        max_tip_length_to_length_ratio=0.30,
+    )
+    viol2_annot.next_to(viol2_arr, DOWN, buff=0.06)
+    scene.play(Indicate(eq2_no_max[5], color=RED_B, scale_factor=1.18), run_time=0.55)
+    scene.play(GrowArrow(viol2_arr), FadeIn(viol2_annot))
+    scene.wait(0.4)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 4  (45s – 60s): Wrap both in max(…, 0) — Dual Feasibility
+    # ══════════════════════════════════════════════════════════════════════
     scene.play(
-        quality_fill.animate.stretch_to_fit_height(0.55).move_to(
-            quality_bar.get_bottom() + UP * 0.275
-        ),
-        lambda1.animate.set_value(0.95),
-        run_time=1.5,
+        FadeOut(VGroup(viol2_arr, viol2_annot)),
+        run_time=0.4,
     )
+
+    # Build the final complete formulas with max(…, 0)
+    eq1_max = MathTex(
+        r"\lambda_1^{t+1}",
+        r"= \max\!\Bigl(",
+        r"\lambda_1^t + \eta_1\!\left(\alpha - \tfrac{1}{N}\sum_{i,j} a_{i,j}x_{i,j}\right)",
+        r",\;0\Bigr)",
+        font_size=30,
+    )
+    eq1_max[0].set_color(BLUE_B)
+    eq1_max[2].set_color(BLUE_B)
+    eq1_max[1].set_color(WHITE)
+    eq1_max[3].set_color(WHITE)
+    eq1_max.move_to(UP * 1.5)
+
+    eq2_max = MathTex(
+        r"\lambda_{2,j}^{t+1}",
+        r"= \max\!\Bigl(",
+        r"\lambda_{2,j}^t + \eta_2\!\left(\sum_i x_{i,j} - L_j\right)",
+        r",\;0\Bigr)",
+        font_size=30,
+    )
+    eq2_max[0].set_color(RED_B)
+    eq2_max[2].set_color(RED_B)
+    eq2_max[1].set_color(WHITE)
+    eq2_max[3].set_color(WHITE)
+    eq2_max.next_to(eq1_max, DOWN, buff=0.55)
+
+    # GrowFromCenter for the max(…,0) wrappers to feel like they "snap on"
     scene.play(
-        FadeIn(
-            VGroup(
-                cap_label,
-                cap_bar,
-                cap_fill,
-                limit_line,
-                limit_tag,
-                lambda2,
-                lambda2_tag,
-            )
-        )
+        TransformMatchingShapes(eq1_no_max, eq1_max),
+        TransformMatchingShapes(eq2_no_max, eq2_max),
+        run_time=1.1,
     )
+
+    # Flash the max() parts
     scene.play(
-        cap_fill.animate.stretch_to_fit_width(2.05).move_to(
-            cap_bar.get_left() + RIGHT * 1.025
-        ),
-        lambda2.animate.set_value(1.12),
-        run_time=1.5,
+        Indicate(eq1_max[1], color=WHITE, scale_factor=1.22),
+        Indicate(eq1_max[3], color=WHITE, scale_factor=1.22),
+        Indicate(eq2_max[1], color=WHITE, scale_factor=1.22),
+        Indicate(eq2_max[3], color=WHITE, scale_factor=1.22),
+        run_time=0.65,
     )
-    scene.wait(1.0)
+
+    # "Penalty ≥ 0" explanation
+    neg_note = Text(
+        "Penalty < 0 makes no sense  →  max( · , 0) clamps it to zero",
+        font_size=17,
+        color=GREY_A,
+    )
+    neg_note.next_to(eq2_max, DOWN, buff=0.40)
+    scene.play(FadeIn(neg_note, shift=UP * 0.1))
+    scene.wait(0.3)
+
+    # Green-tick Dual Feasibility badge (top-right)
+    # feasibility_grp = VGroup(
+    #     Text("✓", font_size=34, color=GREEN_A),
+    #     Text("Dual Feasibility  (λ ≥ 0)", font_size=20, color=GREEN_A),
+    # ).arrange(RIGHT, buff=0.18)
+    # feasibility_grp.to_corner(UR, buff=0.55)
+    # feas_rect = SurroundingRectangle(
+    #     feasibility_grp,
+    #     color=GREEN_A,
+    #     buff=0.14,
+    #     corner_radius=0.10,
+    #     stroke_width=1.8,
+    # )
+    # scene.play(FadeIn(feasibility_grp, shift=LEFT * 0.1), Create(feas_rect))
+    # scene.play(
+    #     Flash(
+    #         feasibility_grp.get_center(),
+    #         color=GREEN_A,
+    #         flash_radius=0.5,
+    #         line_length=0.18,
+    #     )
+    # )
+
+    scene.wait(1.5)
 
 
 def play_scene16_dual_intuition(scene):
-    title = Text("Intuition for Multipliers", font_size=48).to_edge(UP)
-    left_panel = RoundedRectangle(
-        width=5.8, height=2.3, corner_radius=0.12, color=YELLOW
-    )
-    right_panel = RoundedRectangle(
-        width=5.8, height=2.3, corner_radius=0.12, color=ORANGE
-    )
-    panels = VGroup(left_panel, right_panel).arrange(DOWN, buff=0.55).shift(DOWN * 0.5)
+    # ══════════════════════════════════════════════════════════════════════
+    #  Layout: two model boxes side by side
+    #    Model 1: Cheap & Weak  (left,  x = -3.0)
+    #    Model 2: Strong & Costly (right, x = +3.0)
+    # ══════════════════════════════════════════════════════════════════════
+    M1_X, M2_X = -3.0,  3.0
+    BASE_Y      = -0.3          # neutral vertical position for boxes
 
-    left_text = Text("Quality below target -> lambda_1 rises", font_size=28).move_to(
-        left_panel
-    )
-    right_text = Text("Model overload -> lambda_2 rises", font_size=28).move_to(
-        right_panel
-    )
-    left_impact = (
-        MathTex(
-            r"-\frac{\lambda_1 a_{i,j}}{N}\ \uparrow\Rightarrow\ \text{favor high-}a_{i,j}"
-        )
-        .scale(0.72)
-        .next_to(left_panel, RIGHT, buff=0.25)
-    )
-    right_impact = (
-        MathTex(
-            r"\lambda_{2,j}\uparrow\Rightarrow\ \text{overloaded model becomes expensive}"
-        )
-        .scale(0.72)
-        .next_to(right_panel, RIGHT, buff=0.25)
+    # ── ValueTrackers ────────────────────────────────────────────────────
+    lam1 = ValueTracker(0.5)    # quality penalty
+    lam2 = ValueTracker(0.2)    # capacity penalty for model 1
+
+    # Model intrinsics
+    M1_COST, M1_QUAL = 0.5, 0.4   # cheap, weak
+    M2_COST, M2_QUAL = 1.2, 1.0   # costly, strong
+
+    # ── Model box factory ─────────────────────────────────────────────────
+    def model_box(label, color):
+        rect = RoundedRectangle(width=2.0, height=0.80, corner_radius=0.12,
+                                color=color, fill_color=color, fill_opacity=0.20,
+                                stroke_width=2.5)
+        lbl  = Text(label, font_size=18, color=color).move_to(rect)
+        return VGroup(rect, lbl)
+
+    box1 = model_box("Model 1\n(Cheap & Weak)",  WHITE)
+    box2 = model_box("Model 2\n(Strong & Costly)", WHITE)
+    box1.move_to([M1_X, BASE_Y, 0])
+    box2.move_to([M2_X, BASE_Y, 0])
+
+    # ── always_redraw helpers ─────────────────────────────────────────────
+    # Balloon: radius grows with lam1 * quality; attached above its box
+    def make_balloon(box, qual):
+        def draw():
+            r = 0.15 + lam1.get_value() * qual * 0.22
+            r = min(r, 0.70)
+            circ = Circle(radius=r, color=BLUE_B,
+                           fill_color=BLUE_E, fill_opacity=0.60, stroke_width=1.8)
+            circ.next_to(box, UP, buff=0.10)
+            txt = MathTex(r"-\lambda_1 a", font_size=14, color=WHITE).move_to(circ)
+            line = DashedLine(box.get_top(), circ.get_bottom(),
+                              color=BLUE_A, stroke_width=1.5, dash_length=0.07)
+            return VGroup(line, circ, txt)
+        return always_redraw(draw)
+
+    # Weight: size grows with base cost + lam2 (only for box1)
+    def make_weight_base(box, cost):
+        def draw():
+            w = 0.35 + cost * 0.18
+            h = 0.28 + cost * 0.10
+            rect = Rectangle(width=w, height=h,
+                              fill_color=GOLD_E, fill_opacity=0.85,
+                              stroke_color=GOLD, stroke_width=1.5)
+            rect.next_to(box, DOWN, buff=0.08)
+            lbl = Text("c", font_size=13, color=WHITE).move_to(rect)
+            line = Line(box.get_bottom(), rect.get_top(),
+                        color=GREY_A, stroke_width=1.5)
+            return VGroup(line, rect, lbl)
+        return always_redraw(draw)
+
+    def make_cap_weight(box):
+        def draw():
+            w = 0.28 + lam2.get_value() * 0.55
+            h = 0.22 + lam2.get_value() * 0.38
+            rect = Rectangle(width=w, height=h,
+                              fill_color=RED_E, fill_opacity=0.85,
+                              stroke_color=RED_B, stroke_width=1.5)
+            rect.next_to(box, DOWN, buff=0.38)   # below the base-cost weight
+            lbl = MathTex(r"+\lambda_2", font_size=12, color=WHITE).move_to(rect)
+            return VGroup(rect, lbl)
+        return always_redraw(draw)
+
+    # Box vertical position tracks net "weight" = cost + lam2 - lam1*qual
+    def make_box_updater(box, cost, qual, x_pos):
+        def update(m):
+            net = cost + lam2.get_value() * (1 if x_pos < 0 else 0) \
+                  - lam1.get_value() * qual * 0.55
+            m.move_to([x_pos, BASE_Y - net * 0.35, 0])
+        box.add_updater(update)
+
+    make_box_updater(box1, M1_COST, M1_QUAL, M1_X)
+    make_box_updater(box2, M2_COST, M2_QUAL, M2_X)
+
+    balloon1 = make_balloon(box1, M1_QUAL)
+    balloon2 = make_balloon(box2, M2_QUAL)
+    weight1  = make_weight_base(box1, M1_COST)
+    weight2  = make_weight_base(box2, M2_COST)
+    cap_w1   = make_cap_weight(box1)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 1  (0s – 15s): Title + introduce two models
+    # ══════════════════════════════════════════════════════════════════════
+    title = Text("The Economic Intuition", font_size=38).to_edge(UP, buff=0.45)
+    scene.play(FadeIn(title, shift=DOWN * 0.2))
+
+    scene.add(balloon1, balloon2, weight1, weight2, cap_w1)
+    scene.play(FadeIn(box1), FadeIn(box2), run_time=0.8)
+
+    # Labels explaining the visual elements
+    legend = VGroup(
+        VGroup(Circle(radius=0.12, color=BLUE_B, fill_color=BLUE_E, fill_opacity=0.6),
+               Text("Quality lift  −λ₁a",   font_size=14, color=GREY_A)).arrange(RIGHT, buff=0.10),
+        VGroup(Square(side_length=0.22, fill_color=GOLD_E, fill_opacity=0.8,
+                      stroke_color=GOLD, stroke_width=1),
+               Text("Base cost  c",          font_size=14, color=GREY_A)).arrange(RIGHT, buff=0.10),
+        VGroup(Square(side_length=0.22, fill_color=RED_E, fill_opacity=0.8,
+                      stroke_color=RED_B, stroke_width=1),
+               Text("Capacity tax  +λ₂",    font_size=14, color=GREY_A)).arrange(RIGHT, buff=0.10),
+    ).arrange(DOWN, aligned_edge=LEFT, buff=0.14)
+    legend.to_corner(UR, buff=0.55)
+    scene.play(FadeIn(legend))
+    scene.wait(0.5)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 2  (15s – 35s): λ₁ rises → balloon on Model 2 expands → M2 floats up
+    # ══════════════════════════════════════════════════════════════════════
+    # Slider for λ₁
+    lam1_bar = NumberLine(x_range=[0, 5, 1], length=4.5,
+                          include_numbers=False, color=GREY_B)
+    lam1_bar.move_to(DOWN * 2.8 + LEFT * 1.5)
+    lam1_lbl = Text("Quality Penalty  λ₁", font_size=16, color=BLUE_B)
+    lam1_lbl.next_to(lam1_bar, UP, buff=0.12)
+
+    lam1_dot = always_redraw(lambda: Dot(
+        lam1_bar.n2p(lam1.get_value()), radius=0.12, color=BLUE_B
+    ))
+    lam1_val = always_redraw(lambda: MathTex(
+        rf"\lambda_1 = {lam1.get_value():.1f}", font_size=20, color=BLUE_B
+    ).next_to(lam1_bar, DOWN, buff=0.10))
+
+    scene.play(Create(lam1_bar), FadeIn(lam1_lbl), FadeIn(lam1_dot), FadeIn(lam1_val))
+
+    # Raise λ₁ → Model 2's balloon grows, M2 floats up
+    scene.play(lam1.animate.set_value(4.2), run_time=2.2)
+
+    # Highlight Model 2 as winner
+    win_rect2 = SurroundingRectangle(box2, color=GREEN_A, buff=0.20,
+                                     corner_radius=0.12, stroke_width=2.5)
+    tick2 = Text("✓", font_size=38, color=GREEN_A).next_to(box2, UR, buff=0.05)
+    msg1  = Text("Higher λ₁ favors High-Quality models", font_size=19, color=BLUE_B)
+    msg1.next_to(lam1_bar, DOWN, buff=0.50)
+
+    scene.play(Create(win_rect2), FadeIn(tick2))
+    scene.play(FadeIn(msg1, shift=UP * 0.1))
+    scene.wait(0.7)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 3  (35s – 55s): Model 1 overloaded → λ₂ rises → M1 sinks
+    # ══════════════════════════════════════════════════════════════════════
+    scene.play(
+        FadeOut(VGroup(win_rect2, tick2, msg1)),
+        lam1.animate.set_value(0.6),   # reset λ₁
+        run_time=0.7,
     )
 
-    scene.play(FadeIn(title), FadeIn(panels), FadeIn(left_text), FadeIn(right_text))
-    scene.play(Indicate(left_panel, color=YELLOW), FadeIn(left_impact))
-    scene.play(Indicate(right_panel, color=ORANGE), FadeIn(right_impact))
-    scene.wait(1.0)
+    # Packets rushing into Model 1
+    packets = VGroup(*[
+        Dot(radius=0.08, color=YELLOW).move_to(
+            box1.get_center() + LEFT * (2.5 + i * 0.5) + UP * (0.15 * (i % 3 - 1))
+        )
+        for i in range(6)
+    ])
+    scene.play(LaggedStart(*[FadeIn(p) for p in packets], lag_ratio=0.12))
+    scene.play(
+        LaggedStart(*[p.animate.move_to(box1.get_center()) for p in packets],
+                    lag_ratio=0.10),
+        run_time=1.0,
+    )
+    scene.play(FadeOut(packets))
+
+    # "Load: 150%" overload indicator on Model 1
+    load_lbl = Text("Load: 150% ⚠", font_size=18, color=RED_B)
+    load_lbl.next_to(box1, UP, buff=1.10)
+    scene.play(FadeIn(load_lbl))
+
+    # Slider for λ₂
+    lam2_bar = NumberLine(x_range=[0, 5, 1], length=4.5,
+                          include_numbers=False, color=GREY_B)
+    lam2_bar.next_to(lam1_bar, DOWN, buff=0.65)
+    lam2_lbl = Text("Capacity Penalty  λ₂₁", font_size=16, color=RED_B)
+    lam2_lbl.next_to(lam2_bar, UP, buff=0.12)
+
+    lam2_dot = always_redraw(lambda: Dot(
+        lam2_bar.n2p(lam2.get_value()), radius=0.12, color=RED_B
+    ))
+    lam2_val = always_redraw(lambda: MathTex(
+        rf"\lambda_{{2,1}} = {lam2.get_value():.1f}", font_size=20, color=RED_B
+    ).next_to(lam2_bar, DOWN, buff=0.10))
+
+    scene.play(Create(lam2_bar), FadeIn(lam2_lbl), FadeIn(lam2_dot), FadeIn(lam2_val))
+
+    # Raise λ₂ → red weight on M1 grows, M1 sinks
+    scene.play(lam2.animate.set_value(4.5), run_time=2.2)
+
+    msg2 = Text("Higher λ₂ penalizes Overloaded models", font_size=19, color=RED_B)
+    msg2.next_to(lam2_bar, DOWN, buff=0.50)
+    scene.play(FadeIn(msg2, shift=UP * 0.1))
+
+    # Packets reroute to Model 2
+    reroute = VGroup(*[
+        Dot(radius=0.08, color=YELLOW).move_to(
+            box1.get_center() + LEFT * (1.0 + i * 0.4)
+        )
+        for i in range(4)
+    ])
+    scene.play(LaggedStart(*[FadeIn(p) for p in reroute], lag_ratio=0.12))
+    scene.play(
+        LaggedStart(*[p.animate.move_to(box2.get_center()) for p in reroute],
+                    lag_ratio=0.12),
+        run_time=1.0,
+    )
+    scene.play(FadeOut(VGroup(reroute, load_lbl)))
+    scene.wait(0.4)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 4  (55s – 60s): Both sliders oscillate → equilibrium
+    # ══════════════════════════════════════════════════════════════════════
+    scene.play(FadeOut(msg2))
+
+    equilibrium_lbl = Text("System finds optimal equilibrium  ⚖",
+                           font_size=22, color=GOLD)
+    equilibrium_lbl.to_edge(DOWN, buff=0.35)
+
+    # Oscillate both trackers toward equilibrium values
+    scene.play(
+        lam1.animate.set_value(2.0),
+        lam2.animate.set_value(1.5),
+        run_time=1.2,
+    )
+    scene.play(
+        lam1.animate.set_value(1.5),
+        lam2.animate.set_value(1.0),
+        run_time=0.9,
+    )
+    scene.play(
+        lam1.animate.set_value(1.8),
+        lam2.animate.set_value(1.2),
+        run_time=0.7,
+    )
+    scene.play(FadeIn(equilibrium_lbl, shift=UP * 0.1))
+    scene.wait(1.5)
