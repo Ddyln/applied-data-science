@@ -1,12 +1,15 @@
 """Single-scene entrypoint for the full OmniRouter walkthrough."""
 
 from manim import *
+from manim_voiceover import VoiceoverScene
+from manim_voiceover.services.gtts import GTTSService
 
 from scenes.formulation import (
     play_scene05_problem_formulation,
     play_scene06_two_stage_framework,
 )
 from scenes.intro import (
+    play_scene00_intro,
     play_scene01_hook_too_many_llms,
     play_scene02_what_is_routing,
     play_scene03_greedy_fails,
@@ -30,10 +33,13 @@ from scenes.results import play_scene17_results, play_scene18_conclusion
 KEEP_STAGE_AFTER_STEPS = [play_scene03_greedy_fails]
 
 
-class OmniRouter(Scene):
+class OmniRouter(VoiceoverScene):
     def construct(self):
+        self.set_speech_service(GTTSService())
+
         steps = (
-            # play_scene01_hook_too_many_llms,
+            play_scene00_intro,
+            play_scene01_hook_too_many_llms,
             # play_scene02_what_is_routing,
             # play_scene03_greedy_fails,
             # play_scene04_omnirouter_idea,
@@ -48,11 +54,11 @@ class OmniRouter(Scene):
             # play_scene14_decision_rule,
             # play_scene15_dual_updates,
             # play_scene16_dual_intuition,
-            play_scene17_results,
-            play_scene18_conclusion,
+            # play_scene17_results,
+            # play_scene18_conclusion,
         )
 
-        for idx, step in enumerate(steps):
+        for step in steps:
             step(self)
 
             keep_stage_for_next = step in KEEP_STAGE_AFTER_STEPS

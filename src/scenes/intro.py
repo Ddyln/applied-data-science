@@ -7,6 +7,40 @@ from components.routing import connect, make_model_column, make_query_column
 from style.theme import LABEL_FONT_SIZE
 
 
+def play_scene00_intro(scene):
+    title = Text("OmniRouter", font_size=60, weight=BOLD, color=YELLOW).shift(UP)
+    subtitle = Text(
+        "Budget and Performance Controllable Multi-LLM Routing",
+        font_size=28,
+        color=WHITE,
+    ).next_to(title, DOWN, buff=0.25)
+
+    members_label = Text("Visualizations by", font_size=26, color=BLUE_B)
+    members = VGroup(
+        Text("Phan Bá Đức  - 22120071", font_size=24),
+        Text("Đặng Duy Lân - 22120182", font_size=24),
+    ).arrange(DOWN, aligned_edge=LEFT, buff=0.18)
+    members_group = VGroup(members_label, members).arrange(DOWN, buff=0.25, aligned_edge=LEFT)
+    members_group.next_to(subtitle, DOWN, buff=0.55)
+
+    members_box = SurroundingRectangle(
+        members_group,
+        color=GREY_B,
+        buff=0.25,
+        corner_radius=0.15,
+        stroke_width=2,
+    )
+
+    scene.play(Write(title), run_time=1.5)
+    scene.play(FadeIn(subtitle, shift=UP * 0.1), run_time=0.8)
+    scene.play(Create(members_box), FadeIn(members_group, shift=UP * 0.1), run_time=0.9)
+    scene.wait(1.8)
+    scene.play(
+        FadeOut(VGroup(title, subtitle, members_box, members_group)),
+        run_time=0.8,
+    )
+
+
 def _query_model_setup():
     query_title = (
         Text("Incoming Queries", font_size=LABEL_FONT_SIZE).to_edge(LEFT).shift(UP * 2)
