@@ -6,57 +6,450 @@ import formulas
 
 
 def play_scene12_lagrangian(scene):
-    title = Text("Lagrangian Formulation", font_size=48).to_edge(UP)
-    obj = formulas.objective().scale(0.86).next_to(title, DOWN, buff=0.55)
-    q = (
-        formulas.quality_constraint()
-        .scale(0.76)
-        .next_to(obj, DOWN, aligned_edge=LEFT, buff=0.25)
-    )
-    cap = (
-        formulas.capacity_constraint()
-        .scale(0.76)
-        .next_to(q, DOWN, aligned_edge=LEFT, buff=0.2)
-    )
-    assign = (
-        formulas.assignment_constraint()
-        .scale(0.76)
-        .next_to(cap, DOWN, aligned_edge=LEFT, buff=0.2)
-    )
-    lag = formulas.lagrangian().scale(0.62).next_to(title, DOWN, buff=0.55)
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 1  (0s – 15s): Objective trapped by 3 constraint walls
+    # ══════════════════════════════════════════════════════════════════════
+    title = Text("Lagrangian Formulation", font_size=40).to_edge(UP, buff=0.45)
 
-    scene.play(FadeIn(title), FadeIn(obj))
-    scene.play(FadeIn(VGroup(q, cap, assign), shift=UP * 0.2))
-    scene.wait(0.6)
+    # Objective formula in the centre
+    obj = MathTex(
+        r"\min \sum_{i,j} c_{i,j}\, x_{i,j}",
+        font_size=44,
+        color=GOLD,
+    ).move_to(ORIGIN)
+
+    scene.play(FadeIn(title, shift=DOWN * 0.2))
+    scene.play(Write(obj), run_time=1.2)
+    scene.wait(0.5)
+
+    # Three constraint wall boxes flying in from 3 directions
+    def wall(label, color, w=3.8, h=0.90):
+        rect = RoundedRectangle(
+            width=w,
+            height=h,
+            corner_radius=0.12,
+            color=color,
+            fill_color=color,
+            fill_opacity=0.18,
+            stroke_width=2.5,
+        )
+        lbl = Text(label, font_size=19, color=color).move_to(rect)
+        return VGroup(rect, lbl)
+
+    wall_q = wall("Quality Constraint", BLUE_B)
+    wall_cap = wall("Capacity Constraint", RED_B)
+    wall_asgn = wall("Assignment Constraint", GREEN_B)
+
+    # Start positions (off-screen)
+    wall_q.move_to(LEFT * 9 + UP * 1.5)
+    wall_cap.move_to(RIGHT * 9 + DOWN * 0.0)
+    wall_asgn.move_to(DOWN * 5 + DOWN * 0.5)
+
+    # End positions (surrounding the objective)
+    wall_q_end = obj.get_center() + UP * 1.35
+    wall_cap_end = obj.get_center() + RIGHT * 3.80
+    wall_asgn_end = obj.get_center() + DOWN * 1.35
+
+    scene.add(wall_q, wall_cap, wall_asgn)
     scene.play(
-        TransformMatchingTex(VGroup(obj, q, cap, assign).copy(), lag), FadeIn(lag)
+        wall_q.animate.move_to(wall_q_end),
+        wall_cap.animate.move_to(wall_cap_end),
+        wall_asgn.animate.move_to(wall_asgn_end),
+        run_time=1.1,
     )
 
-    colors = [YELLOW, GREEN_B, ORANGE, BLUE_B]
-    for i, c in enumerate(colors, start=1):
-        if i < len(lag):
-            box = SurroundingRectangle(lag[i], color=c, buff=0.08)
-            scene.play(Create(box), run_time=0.35)
-            scene.play(FadeOut(box), run_time=0.25)
-    scene.wait(1.0)
+    # Objective shakes (trapped feeling)
+    scene.play(
+        obj.animate.shift(RIGHT * 0.12),
+        run_time=0.10,
+    )
+    for _ in range(3):
+        scene.play(obj.animate.shift(LEFT * 0.12), run_time=0.08)
+        scene.play(obj.animate.shift(RIGHT * 0.12), run_time=0.08)
+    scene.play(obj.animate.shift(LEFT * 0.06), run_time=0.06)
+    scene.wait(0.5)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 2  (15s – 25s): Constraint walls move right and stay visible
+    # ══════════════════════════════════════════════════════════════════════
+    wall_q_right = RIGHT * 4.9 + UP * 1.9
+    wall_cap_right = RIGHT * 4.9 + UP * 0.45
+    wall_asgn_right = RIGHT * 4.9 + DOWN * 1.0
+
+    scene.play(
+        wall_q.animate.move_to(wall_q_right),
+        wall_cap.animate.move_to(wall_cap_right),
+        wall_asgn.animate.move_to(wall_asgn_right),
+        run_time=0.85,
+    )
+    scene.wait(0.25)
+
+    # Objective anchor for the full Lagrangian block
+    obj_anchor = UP * 2.2 + LEFT
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 3  (25s – 45s): Build Lagrangian line by line, colour coded
+    # ══════════════════════════════════════════════════════════════════════
+    # Line 0 – header + cost term (GOLD)
+    line0 = MathTex(
+        r"\mathcal{L}(x,\lambda_1,\lambda_2,\mu)",  # [0]
+        r"=",  # [1]
+        r"\sum_{i,j} c_{i,j}\,x_{i,j}",  # [2]  cost – GOLD
+        font_size=34,
+    )
+    line0[2].set_color(GOLD)
+    line0.next_to(obj_anchor + DOWN * 0.65, RIGHT, buff=0.0).to_edge(LEFT, buff=0.55)
+    line0.shift(DOWN * 0.05)
+
+    # Line 1 – quality penalty (BLUE_B)
+    line1 = MathTex(
+        r"+\;",  # [0]
+        r"\lambda_1",  # [1]  ← Indicate
+        r"\!\left(\alpha - \tfrac{1}{N}\sum_{i,j} a_{i,j}\,x_{i,j}\right)",  # [2]
+        font_size=34,
+    )
+    line1[0].set_color(BLUE_B)
+    line1[1].set_color(BLUE_B)
+    line1[2].set_color(BLUE_B)
+    line1.next_to(line0, DOWN, aligned_edge=LEFT, buff=0.28)
+
+    # Line 2 – capacity penalty (RED_B)
+    line2 = MathTex(
+        r"+\;",  # [0]
+        r"\sum_j \lambda_{2,j}",  # [1]  ← Indicate
+        r"\!\left(\sum_i x_{i,j} - L_j\right)",  # [2]
+        font_size=34,
+    )
+    line2[0].set_color(RED_B)
+    line2[1].set_color(RED_B)
+    line2[2].set_color(RED_B)
+    line2.next_to(line1, DOWN, aligned_edge=LEFT, buff=0.28)
+
+    # Line 3 – assignment penalty (GREEN_B)
+    line3 = MathTex(
+        r"+\;",  # [0]
+        r"\sum_i \mu_i",  # [1]  ← Indicate
+        r"\!\left(\sum_j x_{i,j} - 1\right)",  # [2]
+        font_size=34,
+    )
+    line3[0].set_color(GREEN_B)
+    line3[1].set_color(GREEN_B)
+    line3[2].set_color(GREEN_B)
+    line3.next_to(line2, DOWN, aligned_edge=LEFT, buff=0.28)
+
+    # --- Animate line by line ---
+    # Line 0: header appears; objective morphs into cost term
+    scene.play(Write(line0[0]), Write(line0[1]), run_time=0.9)
+    scene.play(ReplacementTransform(obj, line0[2]), run_time=0.9)
+    scene.play(Indicate(line0[2], color=GOLD, scale_factor=1.12), run_time=0.6)
+
+    # Line 1: quality penalty
+    scene.play(FadeIn(line1[0]), Write(line1[1]), run_time=0.5)
+    arr_q = Arrow(
+        line1.get_right() + RIGHT * 0.12,
+        wall_q.get_left() + LEFT * 0.02,
+        buff=0.10,
+        stroke_width=3,
+        color=BLUE_B,
+    )
+    scene.play(
+        Indicate(line1[1], color=BLUE_B, scale_factor=1.3),
+        GrowArrow(arr_q),
+        Indicate(wall_q, color=BLUE_B, scale_factor=1.03),
+        run_time=0.6,
+    )
+    scene.play(Write(line1[2]), run_time=0.9)
+
+    # Line 2: capacity penalty
+    scene.play(FadeIn(line2[0]), Write(line2[1]), run_time=0.5)
+    arr_cap = Arrow(
+        line2.get_right() + RIGHT * 0.12,
+        wall_cap.get_left() + LEFT * 0.02,
+        buff=0.10,
+        stroke_width=3,
+        color=RED_B,
+    )
+    scene.play(
+        Indicate(line2[1], color=RED_B, scale_factor=1.3),
+        GrowArrow(arr_cap),
+        Indicate(wall_cap, color=RED_B, scale_factor=1.03),
+        run_time=0.6,
+    )
+    scene.play(Write(line2[2]), run_time=0.9)
+
+    # Line 3: assignment penalty
+    scene.play(FadeIn(line3[0]), Write(line3[1]), run_time=0.5)
+    arr_asgn = Arrow(
+        line3.get_right() + RIGHT * 0.12,
+        wall_asgn.get_left() + LEFT * 0.02,
+        buff=0.10,
+        stroke_width=3,
+        color=GREEN_B,
+    )
+    scene.play(
+        Indicate(line3[1], color=GREEN_B, scale_factor=1.3),
+        GrowArrow(arr_asgn),
+        Indicate(wall_asgn, color=GREEN_B, scale_factor=1.03),
+        run_time=0.6,
+    )
+    scene.play(Write(line3[2]), run_time=0.9)
+    scene.wait(0.4)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 4  (45s – 55s): Wrap in glowing box → "Minimize L" + x_{i,j}?
+    # ══════════════════════════════════════════════════════════════════════
+    full_lagrangian = VGroup(line0, line1, line2, line3)
+    link_arrows = VGroup(arr_q, arr_cap, arr_asgn)
+
+    # Shrink and surround with glowing rect
+    scene.play(
+        full_lagrangian.animate.scale(0.80).move_to(ORIGIN + UP * 0.4),
+        FadeOut(
+            VGroup(
+                link_arrows,
+                wall_q,
+                wall_cap,
+                wall_asgn,
+            )
+        ),
+        run_time=0.9,
+    )
+
+    glow_rect = SurroundingRectangle(
+        full_lagrangian,
+        color=GOLD,
+        buff=0.22,
+        corner_radius=0.14,
+        stroke_width=2.0,
+    )
+    scene.play(Create(glow_rect), run_time=0.6)
+    scene.play(glow_rect.animate.set_stroke(opacity=0.55), run_time=0.4)
+
+    # "Minimize L" label below
+    min_lbl = MathTex(r"\text{Minimize}\;\mathcal{L}", font_size=40, color=GOLD)
+    min_lbl.next_to(glow_rect, DOWN, buff=0.35)
+    scene.play(FadeIn(min_lbl, shift=UP * 0.15))
+
+    # x_{i,j} with a blinking question mark → "how to find x?"
+    x_lbl = MathTex(r"x_{i,j}", font_size=34, color=WHITE)
+    q_mark = MathTex(r"?", font_size=38, color=YELLOW)
+    x_lbl.next_to(min_lbl, RIGHT, buff=0.55)
+    q_mark.next_to(x_lbl, RIGHT, buff=0.10)
+    scene.play(FadeIn(x_lbl), FadeIn(q_mark))
+
+    # Blink the question mark 3 times
+    for _ in range(3):
+        scene.play(q_mark.animate.set_opacity(0.0), run_time=0.25)
+        scene.play(q_mark.animate.set_opacity(1.0), run_time=0.25)
+
+    scene.wait(1.2)
 
 
 def play_scene13_optimality_condition(scene):
-    title = Text("Optimality Condition", font_size=48).to_edge(UP)
-    eq = MathTex(
-        r"\frac{\partial \mathcal{L}}{\partial x_{i,j}}"
-        r"= c_{i,j} - \frac{\lambda_1 a_{i,j}}{N} + \lambda_{2,j} + \mu_i = 0"
-    ).scale(0.82)
-    core = MathTex(r"c_{i,j} - \frac{\lambda_1 a_{i,j}}{N} + \lambda_{2,j}").scale(1.05)
-    core.next_to(eq, DOWN, buff=0.7)
-    core_tag = Text("effective score", font_size=26, color=YELLOW).next_to(
-        core, DOWN, buff=0.2
+    # ══════════════════════════════════════════════════════════════════════
+    #  Layout constants
+    #  Left half  : Lagrangian  (centred at x = -3.0)
+    #  Right half : derivative  (centred at x = +2.8)
+    # ══════════════════════════════════════════════════════════════════════
+    LAG_X   = -3.2    # centre-x of the Lagrangian column
+    DERIV_X =  2.8    # centre-x of the derivative / coefficient column
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 1  (0s – 12s): Title + Lagrangian on LEFT + deriv prompt on RIGHT
+    # ══════════════════════════════════════════════════════════════════════
+    title = Text("Optimality Condition (KKT)", font_size=38).to_edge(UP, buff=0.45)
+    scene.play(FadeIn(title, shift=DOWN * 0.2))
+
+    # ── Lagrangian (left column) ──────────────────────────────────────────
+    line0 = MathTex(
+        r"\mathcal{L}(x,\lambda_1,\lambda_2,\mu)",
+        r"=",
+        r"\sum_{i,j} c_{i,j}\,x_{i,j}",
+        font_size=28,
+    )
+    line0[2].set_color(GOLD)
+
+    line1 = MathTex(
+        r"+\;",
+        r"\lambda_1",
+        r"\!\left(\alpha - \tfrac{1}{N}\sum_{i,j} a_{i,j}\,x_{i,j}\right)",
+        font_size=28,
+    )
+    line1.set_color(BLUE_B)
+
+    line2 = MathTex(
+        r"+\;",
+        r"\sum_j \lambda_{2,j}",
+        r"\!\left(\sum_i x_{i,j} - L_j\right)",
+        font_size=28,
+    )
+    line2.set_color(RED_B)
+
+    line3 = MathTex(
+        r"+\;",
+        r"\sum_i \mu_i",
+        r"\!\left(\sum_j x_{i,j} - 1\right)",
+        font_size=28,
+    )
+    line3.set_color(GREEN_B)
+
+    line1.next_to(line0, DOWN, aligned_edge=LEFT, buff=0.22)
+    line2.next_to(line1, DOWN, aligned_edge=LEFT, buff=0.22)
+    line3.next_to(line2, DOWN, aligned_edge=LEFT, buff=0.22)
+
+    lag_group = VGroup(line0, line1, line2, line3)
+    lag_group.move_to([LAG_X, 0.3, 0])   # left half, slightly above centre
+
+    scene.play(FadeIn(lag_group, shift=RIGHT * 0.15), run_time=0.9)
+
+    # Vertical divider
+    divider = DashedLine(
+        UP * 3.2, DOWN * 3.2,
+        color=GREY_B, stroke_width=1.2, dash_length=0.12,
+    ).move_to(ORIGIN)
+    scene.play(Create(divider), run_time=0.5)
+
+    # ── Derivative prompt (right column) ─────────────────────────────────
+    deriv_prompt = MathTex(
+        r"\frac{\partial \mathcal{L}}{\partial x_{i,j}} = \;\dots",
+        font_size=36, color=YELLOW,
+    )
+    deriv_prompt.move_to([DERIV_X, 2.2, 0])
+    scene.play(FadeIn(deriv_prompt, shift=LEFT * 0.15))
+    for _ in range(2):
+        scene.play(deriv_prompt.animate.set_opacity(0.2), run_time=0.22)
+        scene.play(deriv_prompt.animate.set_opacity(1.0), run_time=0.22)
+    scene.wait(0.4)
+
+    # Coefficient landing positions on the right (stacked vertically)
+    # Each coeff appears below the previous one on the right side
+    COEFF_X   = DERIV_X
+    COEFF_TOP = deriv_prompt.get_bottom()[1] - 0.55   # y of first coeff
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 2  (12s – 35s): Highlight each line, shoot coefficient to right
+    # ══════════════════════════════════════════════════════════════════════
+    def highlight_line(target):
+        """Dim all lines except target; target stays full opacity."""
+        anims = []
+        for ln in [line0, line1, line2, line3]:
+            anims.append(
+                ln.animate.set_opacity(1.0 if ln is target else 0.15)
+            )
+        return anims
+
+    # ── c_{i,j} from line0 ───────────────────────────────────────────────
+    scene.play(*highlight_line(line0), run_time=0.45)
+
+    coeff_c = MathTex(r"c_{i,j}", font_size=34, color=GOLD)
+    coeff_c.move_to(line0[2].get_center())
+    scene.add(coeff_c)
+    dest_c = [COEFF_X, COEFF_TOP, 0]
+    scene.play(coeff_c.animate.move_to(dest_c), run_time=0.65)
+
+    # ── -λ₁a_{i,j}/N from line1 ──────────────────────────────────────────
+    scene.play(*highlight_line(line1), run_time=0.40)
+
+    coeff_lam1 = MathTex(r"-\,\tfrac{\lambda_1 a_{i,j}}{N}", font_size=34, color=BLUE_B)
+    coeff_lam1.move_to(line1.get_center())
+    scene.add(coeff_lam1)
+    dest_lam1 = [COEFF_X, COEFF_TOP - 0.85, 0]
+    scene.play(coeff_lam1.animate.move_to(dest_lam1), run_time=0.65)
+    scene.play(Indicate(coeff_lam1, color=BLUE_B, scale_factor=1.18), run_time=0.45)
+
+    # ── +λ_{2,j} from line2 ──────────────────────────────────────────────
+    scene.play(*highlight_line(line2), run_time=0.40)
+
+    coeff_lam2 = MathTex(r"+\,\lambda_{2,j}", font_size=34, color=RED_B)
+    coeff_lam2.move_to(line2.get_center())
+    scene.add(coeff_lam2)
+    dest_lam2 = [COEFF_X, COEFF_TOP - 1.70, 0]
+    scene.play(coeff_lam2.animate.move_to(dest_lam2), run_time=0.65)
+    scene.play(Indicate(coeff_lam2, color=RED_B, scale_factor=1.18), run_time=0.45)
+
+    # ── +μ_i from line3 ───────────────────────────────────────────────────
+    scene.play(*highlight_line(line3), run_time=0.40)
+
+    coeff_mu = MathTex(r"+\,\mu_i", font_size=34, color=GREEN_B)
+    coeff_mu.move_to(line3.get_center())
+    scene.add(coeff_mu)
+    dest_mu = [COEFF_X, COEFF_TOP - 2.55, 0]
+    scene.play(coeff_mu.animate.move_to(dest_mu), run_time=0.65)
+    scene.play(Indicate(coeff_mu, color=GREEN_B, scale_factor=1.18), run_time=0.45)
+
+    scene.wait(0.4)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 3  (35s – 50s): Clear left side, merge coefficients → final eq
+    # ══════════════════════════════════════════════════════════════════════
+    scene.play(
+        FadeOut(lag_group),
+        FadeOut(divider),
+        FadeOut(deriv_prompt),
+        run_time=0.7,
     )
 
-    scene.play(FadeIn(title), FadeIn(eq))
-    scene.play(Indicate(eq[1], color=YELLOW), run_time=1.0)
-    scene.play(FadeIn(core), FadeIn(core_tag))
-    scene.wait(1.0)
+    # Full stationarity equation centred on screen
+    final_eq = MathTex(
+        r"\frac{\partial \mathcal{L}}{\partial x_{i,j}}",   # [0]
+        r"=",                                                 # [1]
+        r"c_{i,j}",                                          # [2]  GOLD
+        r"-\,\frac{\lambda_1 a_{i,j}}{N}",                  # [3]  BLUE_B
+        r"+\,\lambda_{2,j}",                                 # [4]  RED_B
+        r"+\,\mu_i",                                         # [5]  GREEN_B
+        r"=\;0",                                             # [6]  RED_A
+        font_size=40,
+    )
+    final_eq[2].set_color(GOLD)
+    final_eq[3].set_color(BLUE_B)
+    final_eq[4].set_color(RED_B)
+    final_eq[5].set_color(GREEN_B)
+    final_eq[6].set_color(RED_A)
+    final_eq.move_to(ORIGIN)
+
+    # Floating coefficients morph into their positions in final_eq
+    scene.play(
+        Transform(coeff_c,    final_eq[2]),
+        Transform(coeff_lam1, final_eq[3]),
+        Transform(coeff_lam2, final_eq[4]),
+        Transform(coeff_mu,   final_eq[5]),
+        run_time=1.0,
+    )
+    scene.play(
+        Write(final_eq[0]),
+        Write(final_eq[1]),
+        Write(final_eq[6]),
+        run_time=0.9,
+    )
+    scene.remove(coeff_c, coeff_lam1, coeff_lam2, coeff_mu)
+    scene.add(final_eq)
+
+    # Glowing frame
+    glow_rect = SurroundingRectangle(
+        final_eq, color=GOLD, buff=0.20, corner_radius=0.12, stroke_width=2.2
+    )
+    scene.play(Create(glow_rect), run_time=0.55)
+
+    # Pulse "= 0"
+    scene.play(Indicate(final_eq[6], color=RED_A, scale_factor=1.30), run_time=0.55)
+    scene.play(Indicate(final_eq[6], color=RED_A, scale_factor=1.30), run_time=0.55)
+
+    # Annotation
+    annot = Text("← Marginal Net Cost = 0  (optimality balance)",
+                 font_size=17, color=GREY_A)
+    annot.next_to(glow_rect, DOWN, buff=0.30)
+    scene.play(FadeIn(annot, shift=UP * 0.1))
+
+    # Tease scene 14
+    mu_hint = MathTex(
+        r"\mu_i \text{ cancels} \;\rightarrow\; \text{Scene 14}",
+        font_size=20, color=GREEN_B,
+    )
+    mu_hint.next_to(annot, DOWN, buff=0.20)
+    scene.play(FadeIn(mu_hint, shift=UP * 0.1))
+    scene.play(Indicate(final_eq[5], color=GREEN_B, scale_factor=1.25), run_time=0.55)
+
+    scene.wait(1.5)
 
 
 def play_scene14_decision_rule(scene):
