@@ -5,3 +5,4 @@ dependencies:
   - python=3.10
   - manim
   - black
+  - setuptools=81.0.0

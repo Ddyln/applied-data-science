@@ -44,12 +44,12 @@ class OmniRouter(Scene):
             # play_scene10_retrieval_augmentation,
             # play_scene11_fusion,
             # play_scene12_lagrangian,
-            play_scene13_optimality_condition,
+            # play_scene13_optimality_condition,
             # play_scene14_decision_rule,
             # play_scene15_dual_updates,
             # play_scene16_dual_intuition,
-            # play_scene17_results,
-            # play_scene18_conclusion,
+            play_scene17_results,
+            play_scene18_conclusion,
         )
 
         for idx, step in enumerate(steps):

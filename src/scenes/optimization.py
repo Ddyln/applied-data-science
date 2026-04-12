@@ -329,17 +329,19 @@ def play_scene13_optimality_condition(scene):
     # ══════════════════════════════════════════════════════════════════════
     #  ACT 2  (12s – 35s): Highlight each line, shoot coefficient to right
     # ══════════════════════════════════════════════════════════════════════
-    def highlight_line(target):
-        """Dim all lines except target; target stays full opacity."""
-        anims = []
-        for ln in [line0, line1, line2, line3]:
-            anims.append(
-                ln.animate.set_opacity(1.0 if ln is target else 0.15)
-            )
-        return anims
+    def line_pointer(line, color=YELLOW):
+        return Arrow(
+            line.get_left() + LEFT * 0.95,
+            line.get_left() + LEFT * 0.06,
+            buff=0.0,
+            stroke_width=3,
+            color=color,
+            max_tip_length_to_length_ratio=0.35,
+        )
 
     # ── c_{i,j} from line0 ───────────────────────────────────────────────
-    scene.play(*highlight_line(line0), run_time=0.45)
+    scan_arrow = line_pointer(line0)
+    scene.play(GrowArrow(scan_arrow), Indicate(line0, color=GOLD, scale_factor=1.03), run_time=0.45)
 
     coeff_c = MathTex(r"c_{i,j}", font_size=34, color=GOLD)
     coeff_c.move_to(line0[2].get_center())
@@ -348,7 +350,13 @@ def play_scene13_optimality_condition(scene):
     scene.play(coeff_c.animate.move_to(dest_c), run_time=0.65)
 
     # ── -λ₁a_{i,j}/N from line1 ──────────────────────────────────────────
-    scene.play(*highlight_line(line1), run_time=0.40)
+    next_arrow = line_pointer(line1)
+    scene.play(
+        ReplacementTransform(scan_arrow, next_arrow),
+        Indicate(line1, color=BLUE_B, scale_factor=1.03),
+        run_time=0.40,
+    )
+    scan_arrow = next_arrow
 
     coeff_lam1 = MathTex(r"-\,\tfrac{\lambda_1 a_{i,j}}{N}", font_size=34, color=BLUE_B)
     coeff_lam1.move_to(line1.get_center())
@@ -358,7 +366,13 @@ def play_scene13_optimality_condition(scene):
     scene.play(Indicate(coeff_lam1, color=BLUE_B, scale_factor=1.18), run_time=0.45)
 
     # ── +λ_{2,j} from line2 ──────────────────────────────────────────────
-    scene.play(*highlight_line(line2), run_time=0.40)
+    next_arrow = line_pointer(line2)
+    scene.play(
+        ReplacementTransform(scan_arrow, next_arrow),
+        Indicate(line2, color=RED_B, scale_factor=1.03),
+        run_time=0.40,
+    )
+    scan_arrow = next_arrow
 
     coeff_lam2 = MathTex(r"+\,\lambda_{2,j}", font_size=34, color=RED_B)
     coeff_lam2.move_to(line2.get_center())
@@ -368,7 +382,13 @@ def play_scene13_optimality_condition(scene):
     scene.play(Indicate(coeff_lam2, color=RED_B, scale_factor=1.18), run_time=0.45)
 
     # ── +μ_i from line3 ───────────────────────────────────────────────────
-    scene.play(*highlight_line(line3), run_time=0.40)
+    next_arrow = line_pointer(line3)
+    scene.play(
+        ReplacementTransform(scan_arrow, next_arrow),
+        Indicate(line3, color=GREEN_B, scale_factor=1.03),
+        run_time=0.40,
+    )
+    scan_arrow = next_arrow
 
     coeff_mu = MathTex(r"+\,\mu_i", font_size=34, color=GREEN_B)
     coeff_mu.move_to(line3.get_center())
@@ -376,6 +396,7 @@ def play_scene13_optimality_condition(scene):
     dest_mu = [COEFF_X, COEFF_TOP - 2.55, 0]
     scene.play(coeff_mu.animate.move_to(dest_mu), run_time=0.65)
     scene.play(Indicate(coeff_mu, color=GREEN_B, scale_factor=1.18), run_time=0.45)
+    scene.play(FadeOut(scan_arrow), run_time=0.2)
 
     scene.wait(0.4)
 
@@ -435,7 +456,7 @@ def play_scene13_optimality_condition(scene):
     scene.play(Indicate(final_eq[6], color=RED_A, scale_factor=1.30), run_time=0.55)
 
     # Annotation
-    annot = Text("← Marginal Net Cost = 0  (optimality balance)",
+    annot = Text("Marginal Net Cost = 0  (optimality balance)",
                  font_size=17, color=GREY_A)
     annot.next_to(glow_rect, DOWN, buff=0.30)
     scene.play(FadeIn(annot, shift=UP * 0.1))
@@ -453,14 +474,233 @@ def play_scene13_optimality_condition(scene):
 
 
 def play_scene14_decision_rule(scene):
-    title = Text("Decision Rule", font_size=48).to_edge(UP)
-    eq = formulas.decision_rule().scale(0.86)
-    caption = Text("Pick model with minimum adjusted score", font_size=28, color=YELLOW)
-    caption.next_to(eq, DOWN, buff=0.35)
-    box = SurroundingRectangle(eq, color=YELLOW, buff=0.2)
-    scene.play(FadeIn(title), FadeIn(eq))
-    scene.play(Create(box), FadeIn(caption))
-    scene.wait(1.0)
+    # ══════════════════════════════════════════════════════════════════════
+    #  Helpers
+    # ══════════════════════════════════════════════════════════════════════
+    def make_weight_box(label, base_cost, quality_disc, capacity_tax, x_pos):
+        """
+        Returns a VGroup with:
+          - a rounded rect labelled `label`
+          - a downward weight  (base_cost)     → pulls down
+          - an upward balloon  (quality_disc)  → lifts up   (dashed line)
+          - a downward hammer  (capacity_tax)  → pushes down (different colour)
+        The net vertical offset is  base_cost + capacity_tax - quality_disc
+        (positive = heavier / lower on screen).
+        """
+        # LLM box
+        rect  = RoundedRectangle(width=1.8, height=0.75, corner_radius=0.12,
+                                 color=WHITE, fill_color=GREY_D, fill_opacity=0.30,
+                                 stroke_width=2)
+        lbl   = Text(label, font_size=17, color=WHITE).move_to(rect)
+        box   = VGroup(rect, lbl)
+
+        # Base-cost weight (gold, below box)
+        w_rect  = Rectangle(width=0.55, height=0.38,
+                            fill_color=GOLD_E, fill_opacity=0.80,
+                            stroke_color=GOLD, stroke_width=1.5)
+        w_lbl   = Text("c", font_size=14, color=WHITE).move_to(w_rect)
+        weight  = VGroup(w_rect, w_lbl)
+        weight.next_to(box, DOWN, buff=0.06)
+        w_line  = Line(box.get_bottom(), weight.get_top(),
+                       color=GREY_A, stroke_width=1.5)
+
+        # Quality-discount balloon (blue, above box, dashed line)
+        b_circ  = Circle(radius=0.28 + quality_disc * 0.10,
+                         color=BLUE_B, fill_color=BLUE_E, fill_opacity=0.55,
+                         stroke_width=1.5)
+        b_lbl   = Text("a", font_size=13, color=WHITE).move_to(b_circ)
+        balloon = VGroup(b_circ, b_lbl)
+        balloon.next_to(box, UP, buff=0.06)
+        b_line  = DashedLine(box.get_top(), balloon.get_bottom(),
+                             color=BLUE_A, stroke_width=1.5, dash_length=0.07)
+
+        # Capacity-tax hammer (red, above box, solid)
+        h_rect  = Rectangle(width=0.50, height=0.32,
+                            fill_color=RED_E, fill_opacity=0.80,
+                            stroke_color=RED_B, stroke_width=1.5)
+        h_lbl   = Text("λ", font_size=14, color=WHITE).move_to(h_rect)
+        hammer  = VGroup(h_rect, h_lbl)
+        hammer.next_to(balloon, UP, buff=0.06)
+        h_line  = Line(balloon.get_top(), hammer.get_bottom(),
+                       color=RED_B, stroke_width=1.5)
+
+        # Net offset: positive → lower (heavier)
+        net = base_cost + capacity_tax - quality_disc
+        group = VGroup(box, w_line, weight, b_line, balloon, h_line, hammer)
+        group.move_to([x_pos, -net * 0.35, 0])   # scale offset for visual
+        return group, net
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 1  (0s – 15s): Two stationarity equations → μ_i cancels
+    # ══════════════════════════════════════════════════════════════════════
+    title = Text("Decision Rule", font_size=38).to_edge(UP, buff=0.45)
+    scene.play(FadeIn(title, shift=DOWN * 0.2))
+
+    # Two equations for model j and model k
+    eq_j = MathTex(
+        r"c_{i,j}",          # [0] GOLD
+        r"-\,\frac{\lambda_1 a_{i,j}}{N}",  # [1] BLUE_B
+        r"+\,\lambda_{2,j}", # [2] RED_B
+        r"+\,\mu_i",         # [3] GREEN_B  ← will be crossed out
+        r"= 0",              # [4]
+        font_size=34,
+    )
+    eq_j[0].set_color(GOLD)
+    eq_j[1].set_color(BLUE_B)
+    eq_j[2].set_color(RED_B)
+    eq_j[3].set_color(GREEN_B)
+
+    eq_k = MathTex(
+        r"c_{i,k}",
+        r"-\,\frac{\lambda_1 a_{i,k}}{N}",
+        r"+\,\lambda_{2,k}",
+        r"+\,\mu_i",         # [3] ← same μ_i, will be crossed out
+        r"= 0",
+        font_size=34,
+    )
+    eq_k[0].set_color(GOLD)
+    eq_k[1].set_color(BLUE_B)
+    eq_k[2].set_color(RED_B)
+    eq_k[3].set_color(GREEN_B)
+
+    eq_j.move_to(UP * 1.1)
+    eq_k.next_to(eq_j, DOWN, buff=0.55)
+
+    minus_sign = MathTex(r"-", font_size=42, color=WHITE)
+    minus_sign.move_to(
+        [(eq_j.get_left()[0] - 0.5), (eq_j.get_bottom()[1] + eq_k.get_top()[1]) / 2, 0]
+    )
+
+    scene.play(Write(eq_j), run_time=1.1)
+    scene.play(Write(eq_k), run_time=1.1)
+    scene.play(FadeIn(minus_sign))
+    scene.wait(0.3)
+
+    # Cross out μ_i in both equations simultaneously
+    cross_j = Cross(eq_j[3], color=RED, stroke_width=5)
+    cross_k = Cross(eq_k[3], color=RED, stroke_width=5)
+    scene.play(Create(cross_j), Create(cross_k), run_time=0.6)
+    scene.play(
+        eq_j[3].animate.set_opacity(0.20),
+        eq_k[3].animate.set_opacity(0.20),
+        run_time=0.4,
+    )
+
+    mu_cancel_lbl = Text("μᵢ  is the same for all j  →  cancels out!",
+                         font_size=18, color=GREEN_B)
+    mu_cancel_lbl.next_to(eq_k, DOWN, buff=0.35)
+    scene.play(FadeIn(mu_cancel_lbl, shift=UP * 0.1))
+    scene.wait(0.6)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 2  (15s – 30s): Decision rule formula appears
+    # ══════════════════════════════════════════════════════════════════════
+    scene.play(
+        FadeOut(VGroup(eq_j, eq_k, minus_sign, cross_j, cross_k, mu_cancel_lbl)),
+        run_time=0.7,
+    )
+
+    rule = MathTex(
+        r"j^*",                                         # [0]
+        r"= \arg\min_j \Bigl(",                         # [1]
+        r"c_{i,j}",                                     # [2]  GOLD
+        r"-\,\frac{\lambda_1\,a_{i,j}}{N}",             # [3]  BLUE_B
+        r"+\,\lambda_{2,j}",                            # [4]  RED_B
+        r"\Bigr)",                                      # [5]
+        font_size=44,
+    )
+    rule[2].set_color(GOLD)
+    rule[3].set_color(BLUE_B)
+    rule[4].set_color(RED_B)
+    rule.move_to(UP * 1.5)
+
+    scene.play(Write(rule), run_time=1.5)
+
+    # Arrow from j* down to "Select the best model" box
+    select_box = RoundedRectangle(width=3.2, height=0.65, corner_radius=0.12,
+                                  color=YELLOW, fill_color=YELLOW,
+                                  fill_opacity=0.18, stroke_width=2)
+    select_lbl = Text("Select the best model", font_size=20, color=YELLOW)
+    select_lbl.move_to(select_box)
+    select_group = VGroup(select_box, select_lbl)
+    select_group.next_to(rule, DOWN, buff=0.65)
+
+    arr_select = Arrow(rule[0].get_bottom(), select_group.get_top(),
+                       buff=0.08, stroke_width=3, color=YELLOW,
+                       max_tip_length_to_length_ratio=0.22)
+    scene.play(GrowArrow(arr_select), FadeIn(select_group, shift=UP * 0.1))
+    scene.wait(0.5)
+
+    # ══════════════════════════════════════════════════════════════════════
+    #  ACT 3  (30s – 50s): Scale → visual "balance" with 3 LLM boxes
+    # ══════════════════════════════════════════════════════════════════════
+    scene.play(
+        rule.animate.scale(0.58).to_corner(UL, buff=0.55),
+        FadeOut(VGroup(arr_select, select_group)),
+        run_time=0.7,
+    )
+
+    # Three model boxes with different costs/quality/capacity
+    # (base_cost, quality_disc, capacity_tax)
+    model_data = [
+        ("GPT-4o",   1.8, 1.5, 0.4),   # moderate cost, high quality, low tax
+        ("Claude-3", 1.2, 0.7, 1.1),   # cheap, low quality, high capacity tax
+        ("Llama-3",  0.9, 0.5, 0.2),   # cheapest, low quality, low tax → winner
+    ]
+    x_positions = [-3.8, 0.0, 3.8]
+
+    model_boxes = []
+    nets = []
+    for (lbl, bc, qd, ct), xp in zip(model_data, x_positions):
+        grp, net = make_weight_box(lbl, bc, qd, ct, xp)
+        model_boxes.append(grp)
+        nets.append(net)
+
+    scene.play(LaggedStart(*[FadeIn(g) for g in model_boxes], lag_ratio=0.25))
+
+    # Legend for the three components
+    leg_items = VGroup(
+        VGroup(Square(side_length=0.22, fill_color=GOLD_E, fill_opacity=0.8,
+                      stroke_color=GOLD, stroke_width=1),
+               Text("Base Cost  c_{i,j}", font_size=15, color=GREY_A)).arrange(RIGHT, buff=0.12),
+        VGroup(Circle(radius=0.11, fill_color=BLUE_E, fill_opacity=0.8,
+                      stroke_color=BLUE_B, stroke_width=1),
+               Text("Quality Discount  −λ₁a/N", font_size=15, color=GREY_A)).arrange(RIGHT, buff=0.12),
+        VGroup(Square(side_length=0.22, fill_color=RED_E, fill_opacity=0.8,
+                      stroke_color=RED_B, stroke_width=1),
+               Text("Capacity Tax  +λ₂ⱼ", font_size=15, color=GREY_A)).arrange(RIGHT, buff=0.12),
+    ).arrange(DOWN, aligned_edge=LEFT, buff=0.15)
+    leg_items.to_corner(UR, buff=0.55)
+    scene.play(FadeIn(leg_items, shift=LEFT * 0.1))
+    scene.wait(0.5)
+
+    # Scanning dashed rect sweeps left → right across models
+    scan_rect = DashedVMobject(
+        Rectangle(width=2.1, height=4.8, color=WHITE),
+        num_dashes=28,
+    )
+    scan_rect.move_to([x_positions[0], -0.2, 0])
+    scene.play(FadeIn(scan_rect))
+    scene.play(scan_rect.animate.move_to([x_positions[1], -0.2, 0]), run_time=0.6)
+    scene.play(scan_rect.animate.move_to([x_positions[2], -0.2, 0]), run_time=0.6)
+
+    # Winner: model with smallest net (index of min nets)
+    winner_idx = int(np.argmin(nets))
+    winner_grp = model_boxes[winner_idx]
+
+    # Green tick + highlight winner
+    tick = Text("✓", font_size=46, color=GREEN_A)
+    tick.next_to(winner_grp, UP, buff=0.15)
+    win_rect = SurroundingRectangle(winner_grp, color=GREEN_A,
+                                    buff=0.18, corner_radius=0.12, stroke_width=2.5)
+    scene.play(
+        FadeOut(scan_rect),
+        Create(win_rect),
+        FadeIn(tick),
+        Flash(winner_grp.get_center(), color=GREEN_A,
+              flash_radius=0.8, line_length=0.25),
+    )
+    scene.wait(1.5)
 
 
 def play_scene15_dual_updates(scene):
