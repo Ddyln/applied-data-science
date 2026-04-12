@@ -251,8 +251,8 @@ def play_scene13_optimality_condition(scene):
     #  Left half  : Lagrangian  (centred at x = -3.0)
     #  Right half : derivative  (centred at x = +2.8)
     # ══════════════════════════════════════════════════════════════════════
-    LAG_X   = -3.2    # centre-x of the Lagrangian column
-    DERIV_X =  2.8    # centre-x of the derivative / coefficient column
+    LAG_X = -3.2  # centre-x of the Lagrangian column
+    DERIV_X = 2.8  # centre-x of the derivative / coefficient column
 
     # ══════════════════════════════════════════════════════════════════════
     #  ACT 1  (0s – 12s): Title + Lagrangian on LEFT + deriv prompt on RIGHT
@@ -298,21 +298,25 @@ def play_scene13_optimality_condition(scene):
     line3.next_to(line2, DOWN, aligned_edge=LEFT, buff=0.22)
 
     lag_group = VGroup(line0, line1, line2, line3)
-    lag_group.move_to([LAG_X, 0.3, 0])   # left half, slightly above centre
+    lag_group.move_to([LAG_X, 0.3, 0])  # left half, slightly above centre
 
     scene.play(FadeIn(lag_group, shift=RIGHT * 0.15), run_time=0.9)
 
     # Vertical divider
     divider = DashedLine(
-        UP * 3.2, DOWN * 3.2,
-        color=GREY_B, stroke_width=1.2, dash_length=0.12,
+        UP * 3.2,
+        DOWN * 3.2,
+        color=GREY_B,
+        stroke_width=1.2,
+        dash_length=0.12,
     ).move_to(ORIGIN)
     scene.play(Create(divider), run_time=0.5)
 
     # ── Derivative prompt (right column) ─────────────────────────────────
     deriv_prompt = MathTex(
         r"\frac{\partial \mathcal{L}}{\partial x_{i,j}} = \;\dots",
-        font_size=36, color=YELLOW,
+        font_size=36,
+        color=YELLOW,
     )
     deriv_prompt.move_to([DERIV_X, 2.2, 0])
     scene.play(FadeIn(deriv_prompt, shift=LEFT * 0.15))
@@ -323,8 +327,8 @@ def play_scene13_optimality_condition(scene):
 
     # Coefficient landing positions on the right (stacked vertically)
     # Each coeff appears below the previous one on the right side
-    COEFF_X   = DERIV_X
-    COEFF_TOP = deriv_prompt.get_bottom()[1] - 0.55   # y of first coeff
+    COEFF_X = DERIV_X
+    COEFF_TOP = deriv_prompt.get_bottom()[1] - 0.55  # y of first coeff
 
     # ══════════════════════════════════════════════════════════════════════
     #  ACT 2  (12s – 35s): Highlight each line, shoot coefficient to right
@@ -341,7 +345,11 @@ def play_scene13_optimality_condition(scene):
 
     # ── c_{i,j} from line0 ───────────────────────────────────────────────
     scan_arrow = line_pointer(line0)
-    scene.play(GrowArrow(scan_arrow), Indicate(line0, color=GOLD, scale_factor=1.03), run_time=0.45)
+    scene.play(
+        GrowArrow(scan_arrow),
+        Indicate(line0, color=GOLD, scale_factor=1.03),
+        run_time=0.45,
+    )
 
     coeff_c = MathTex(r"c_{i,j}", font_size=34, color=GOLD)
     coeff_c.move_to(line0[2].get_center())
@@ -412,13 +420,13 @@ def play_scene13_optimality_condition(scene):
 
     # Full stationarity equation centred on screen
     final_eq = MathTex(
-        r"\frac{\partial \mathcal{L}}{\partial x_{i,j}}",   # [0]
-        r"=",                                                 # [1]
-        r"c_{i,j}",                                          # [2]  GOLD
-        r"-\,\frac{\lambda_1 a_{i,j}}{N}",                  # [3]  BLUE_B
-        r"+\,\lambda_{2,j}",                                 # [4]  RED_B
-        r"+\,\mu_i",                                         # [5]  GREEN_B
-        r"=\;0",                                             # [6]  RED_A
+        r"\frac{\partial \mathcal{L}}{\partial x_{i,j}}",  # [0]
+        r"=",  # [1]
+        r"c_{i,j}",  # [2]  GOLD
+        r"-\,\frac{\lambda_1 a_{i,j}}{N}",  # [3]  BLUE_B
+        r"+\,\lambda_{2,j}",  # [4]  RED_B
+        r"+\,\mu_i",  # [5]  GREEN_B
+        r"=\;0",  # [6]  RED_A
         font_size=40,
     )
     final_eq[2].set_color(GOLD)
@@ -430,10 +438,10 @@ def play_scene13_optimality_condition(scene):
 
     # Floating coefficients morph into their positions in final_eq
     scene.play(
-        Transform(coeff_c,    final_eq[2]),
+        Transform(coeff_c, final_eq[2]),
         Transform(coeff_lam1, final_eq[3]),
         Transform(coeff_lam2, final_eq[4]),
-        Transform(coeff_mu,   final_eq[5]),
+        Transform(coeff_mu, final_eq[5]),
         run_time=1.0,
     )
     scene.play(
@@ -456,15 +464,17 @@ def play_scene13_optimality_condition(scene):
     scene.play(Indicate(final_eq[6], color=RED_A, scale_factor=1.30), run_time=0.55)
 
     # Annotation
-    annot = Text("Marginal Net Cost = 0  (optimality balance)",
-                 font_size=17, color=GREY_A)
+    annot = Text(
+        "Marginal Net Cost = 0  (optimality balance)", font_size=17, color=GREY_A
+    )
     annot.next_to(glow_rect, DOWN, buff=0.30)
     scene.play(FadeIn(annot, shift=UP * 0.1))
 
     # Tease scene 14
     mu_hint = MathTex(
         r"\mu_i \text{ cancels} \;\rightarrow\; \text{Scene 14}",
-        font_size=20, color=GREEN_B,
+        font_size=20,
+        color=GREEN_B,
     )
     mu_hint.next_to(annot, DOWN, buff=0.20)
     scene.play(FadeIn(mu_hint, shift=UP * 0.1))
@@ -488,46 +498,73 @@ def play_scene14_decision_rule(scene):
         (positive = heavier / lower on screen).
         """
         # LLM box
-        rect  = RoundedRectangle(width=1.8, height=0.75, corner_radius=0.12,
-                                 color=WHITE, fill_color=GREY_D, fill_opacity=0.30,
-                                 stroke_width=2)
-        lbl   = Text(label, font_size=17, color=WHITE).move_to(rect)
-        box   = VGroup(rect, lbl)
+        rect = RoundedRectangle(
+            width=1.8,
+            height=0.75,
+            corner_radius=0.12,
+            color=WHITE,
+            fill_color=GREY_D,
+            fill_opacity=0.30,
+            stroke_width=2,
+        )
+        lbl = Text(label, font_size=17, color=WHITE).move_to(rect)
+        box = VGroup(rect, lbl)
 
         # Base-cost weight (gold, below box)
-        w_rect  = Rectangle(width=0.55, height=0.38,
-                            fill_color=GOLD_E, fill_opacity=0.80,
-                            stroke_color=GOLD, stroke_width=1.5)
-        w_lbl   = Text("c", font_size=14, color=WHITE).move_to(w_rect)
-        weight  = VGroup(w_rect, w_lbl)
+        w_rect = Rectangle(
+            width=0.55,
+            height=0.38,
+            fill_color=GOLD_E,
+            fill_opacity=0.80,
+            stroke_color=GOLD,
+            stroke_width=1.5,
+        )
+        w_lbl = Text("c", font_size=14, color=WHITE).move_to(w_rect)
+        weight = VGroup(w_rect, w_lbl)
         weight.next_to(box, DOWN, buff=0.06)
-        w_line  = Line(box.get_bottom(), weight.get_top(),
-                       color=GREY_A, stroke_width=1.5)
+        w_line = Line(
+            box.get_bottom(), weight.get_top(), color=GREY_A, stroke_width=1.5
+        )
 
         # Quality-discount balloon (blue, above box, dashed line)
-        b_circ  = Circle(radius=0.28 + quality_disc * 0.10,
-                         color=BLUE_B, fill_color=BLUE_E, fill_opacity=0.55,
-                         stroke_width=1.5)
-        b_lbl   = Text("a", font_size=13, color=WHITE).move_to(b_circ)
+        b_circ = Circle(
+            radius=0.28 + quality_disc * 0.10,
+            color=BLUE_B,
+            fill_color=BLUE_E,
+            fill_opacity=0.55,
+            stroke_width=1.5,
+        )
+        b_lbl = Text("a", font_size=13, color=WHITE).move_to(b_circ)
         balloon = VGroup(b_circ, b_lbl)
         balloon.next_to(box, UP, buff=0.06)
-        b_line  = DashedLine(box.get_top(), balloon.get_bottom(),
-                             color=BLUE_A, stroke_width=1.5, dash_length=0.07)
+        b_line = DashedLine(
+            box.get_top(),
+            balloon.get_bottom(),
+            color=BLUE_A,
+            stroke_width=1.5,
+            dash_length=0.07,
+        )
 
         # Capacity-tax hammer (red, above box, solid)
-        h_rect  = Rectangle(width=0.50, height=0.32,
-                            fill_color=RED_E, fill_opacity=0.80,
-                            stroke_color=RED_B, stroke_width=1.5)
-        h_lbl   = Text("λ", font_size=14, color=WHITE).move_to(h_rect)
-        hammer  = VGroup(h_rect, h_lbl)
+        h_rect = Rectangle(
+            width=0.50,
+            height=0.32,
+            fill_color=RED_E,
+            fill_opacity=0.80,
+            stroke_color=RED_B,
+            stroke_width=1.5,
+        )
+        h_lbl = Text("λ", font_size=14, color=WHITE).move_to(h_rect)
+        hammer = VGroup(h_rect, h_lbl)
         hammer.next_to(balloon, UP, buff=0.06)
-        h_line  = Line(balloon.get_top(), hammer.get_bottom(),
-                       color=RED_B, stroke_width=1.5)
+        h_line = Line(
+            balloon.get_top(), hammer.get_bottom(), color=RED_B, stroke_width=1.5
+        )
 
         # Net offset: positive → lower (heavier)
         net = base_cost + capacity_tax - quality_disc
         group = VGroup(box, w_line, weight, b_line, balloon, h_line, hammer)
-        group.move_to([x_pos, -net * 0.35, 0])   # scale offset for visual
+        group.move_to([x_pos, -net * 0.35, 0])  # scale offset for visual
         return group, net
 
     # ══════════════════════════════════════════════════════════════════════
@@ -538,11 +575,11 @@ def play_scene14_decision_rule(scene):
 
     # Two equations for model j and model k
     eq_j = MathTex(
-        r"c_{i,j}",          # [0] GOLD
+        r"c_{i,j}",  # [0] GOLD
         r"-\,\frac{\lambda_1 a_{i,j}}{N}",  # [1] BLUE_B
-        r"+\,\lambda_{2,j}", # [2] RED_B
-        r"+\,\mu_i",         # [3] GREEN_B  ← will be crossed out
-        r"= 0",              # [4]
+        r"+\,\lambda_{2,j}",  # [2] RED_B
+        r"+\,\mu_i",  # [3] GREEN_B  ← will be crossed out
+        r"= 0",  # [4]
         font_size=34,
     )
     eq_j[0].set_color(GOLD)
@@ -554,7 +591,7 @@ def play_scene14_decision_rule(scene):
         r"c_{i,k}",
         r"-\,\frac{\lambda_1 a_{i,k}}{N}",
         r"+\,\lambda_{2,k}",
-        r"+\,\mu_i",         # [3] ← same μ_i, will be crossed out
+        r"+\,\mu_i",  # [3] ← same μ_i, will be crossed out
         r"= 0",
         font_size=34,
     )
@@ -586,8 +623,9 @@ def play_scene14_decision_rule(scene):
         run_time=0.4,
     )
 
-    mu_cancel_lbl = Text("μᵢ  is the same for all j  →  cancels out!",
-                         font_size=18, color=GREEN_B)
+    mu_cancel_lbl = Text(
+        "μᵢ  is the same for all j  →  cancels out!", font_size=18, color=GREEN_B
+    )
     mu_cancel_lbl.next_to(eq_k, DOWN, buff=0.35)
     scene.play(FadeIn(mu_cancel_lbl, shift=UP * 0.1))
     scene.wait(0.6)
@@ -601,12 +639,12 @@ def play_scene14_decision_rule(scene):
     )
 
     rule = MathTex(
-        r"j^*",                                         # [0]
-        r"= \arg\min_j \Bigl(",                         # [1]
-        r"c_{i,j}",                                     # [2]  GOLD
-        r"-\,\frac{\lambda_1\,a_{i,j}}{N}",             # [3]  BLUE_B
-        r"+\,\lambda_{2,j}",                            # [4]  RED_B
-        r"\Bigr)",                                      # [5]
+        r"j^*",  # [0]
+        r"= \arg\min_j \Bigl(",  # [1]
+        r"c_{i,j}",  # [2]  GOLD
+        r"-\,\frac{\lambda_1\,a_{i,j}}{N}",  # [3]  BLUE_B
+        r"+\,\lambda_{2,j}",  # [4]  RED_B
+        r"\Bigr)",  # [5]
         font_size=44,
     )
     rule[2].set_color(GOLD)
@@ -617,17 +655,28 @@ def play_scene14_decision_rule(scene):
     scene.play(Write(rule), run_time=1.5)
 
     # Arrow from j* down to "Select the best model" box
-    select_box = RoundedRectangle(width=3.2, height=0.65, corner_radius=0.12,
-                                  color=YELLOW, fill_color=YELLOW,
-                                  fill_opacity=0.18, stroke_width=2)
+    select_box = RoundedRectangle(
+        width=3.2,
+        height=0.65,
+        corner_radius=0.12,
+        color=YELLOW,
+        fill_color=YELLOW,
+        fill_opacity=0.18,
+        stroke_width=2,
+    )
     select_lbl = Text("Select the best model", font_size=20, color=YELLOW)
     select_lbl.move_to(select_box)
     select_group = VGroup(select_box, select_lbl)
     select_group.next_to(rule, DOWN, buff=0.65)
 
-    arr_select = Arrow(rule[0].get_bottom(), select_group.get_top(),
-                       buff=0.08, stroke_width=3, color=YELLOW,
-                       max_tip_length_to_length_ratio=0.22)
+    arr_select = Arrow(
+        rule[0].get_bottom(),
+        select_group.get_top(),
+        buff=0.08,
+        stroke_width=3,
+        color=YELLOW,
+        max_tip_length_to_length_ratio=0.22,
+    )
     scene.play(GrowArrow(arr_select), FadeIn(select_group, shift=UP * 0.1))
     scene.wait(0.5)
 
@@ -643,9 +692,9 @@ def play_scene14_decision_rule(scene):
     # Three model boxes with different costs/quality/capacity
     # (base_cost, quality_disc, capacity_tax)
     model_data = [
-        ("GPT-4o",   1.8, 1.5, 0.4),   # moderate cost, high quality, low tax
-        ("Claude-3", 1.2, 0.7, 1.1),   # cheap, low quality, high capacity tax
-        ("Llama-3",  0.9, 0.5, 0.2),   # cheapest, low quality, low tax → winner
+        ("GPT-4o", 1.8, 1.5, 0.4),  # moderate cost, high quality, low tax
+        ("Claude-3", 1.2, 0.7, 1.1),  # cheap, low quality, high capacity tax
+        ("Llama-3", 0.9, 0.5, 0.2),  # cheapest, low quality, low tax → winner
     ]
     x_positions = [-3.8, 0.0, 3.8]
 
@@ -660,15 +709,36 @@ def play_scene14_decision_rule(scene):
 
     # Legend for the three components
     leg_items = VGroup(
-        VGroup(Square(side_length=0.22, fill_color=GOLD_E, fill_opacity=0.8,
-                      stroke_color=GOLD, stroke_width=1),
-               Text("Base Cost  c_{i,j}", font_size=15, color=GREY_A)).arrange(RIGHT, buff=0.12),
-        VGroup(Circle(radius=0.11, fill_color=BLUE_E, fill_opacity=0.8,
-                      stroke_color=BLUE_B, stroke_width=1),
-               Text("Quality Discount  −λ₁a/N", font_size=15, color=GREY_A)).arrange(RIGHT, buff=0.12),
-        VGroup(Square(side_length=0.22, fill_color=RED_E, fill_opacity=0.8,
-                      stroke_color=RED_B, stroke_width=1),
-               Text("Capacity Tax  +λ₂ⱼ", font_size=15, color=GREY_A)).arrange(RIGHT, buff=0.12),
+        VGroup(
+            Square(
+                side_length=0.22,
+                fill_color=GOLD_E,
+                fill_opacity=0.8,
+                stroke_color=GOLD,
+                stroke_width=1,
+            ),
+            Text("Base Cost  c_{i,j}", font_size=15, color=GREY_A),
+        ).arrange(RIGHT, buff=0.12),
+        VGroup(
+            Circle(
+                radius=0.11,
+                fill_color=BLUE_E,
+                fill_opacity=0.8,
+                stroke_color=BLUE_B,
+                stroke_width=1,
+            ),
+            Text("Quality Discount  −λ₁a/N", font_size=15, color=GREY_A),
+        ).arrange(RIGHT, buff=0.12),
+        VGroup(
+            Square(
+                side_length=0.22,
+                fill_color=RED_E,
+                fill_opacity=0.8,
+                stroke_color=RED_B,
+                stroke_width=1,
+            ),
+            Text("Capacity Tax  +λ₂ⱼ", font_size=15, color=GREY_A),
+        ).arrange(RIGHT, buff=0.12),
     ).arrange(DOWN, aligned_edge=LEFT, buff=0.15)
     leg_items.to_corner(UR, buff=0.55)
     scene.play(FadeIn(leg_items, shift=LEFT * 0.1))
@@ -691,14 +761,16 @@ def play_scene14_decision_rule(scene):
     # Green tick + highlight winner
     tick = Text("✓", font_size=46, color=GREEN_A)
     tick.next_to(winner_grp, UP, buff=0.15)
-    win_rect = SurroundingRectangle(winner_grp, color=GREEN_A,
-                                    buff=0.18, corner_radius=0.12, stroke_width=2.5)
+    win_rect = SurroundingRectangle(
+        winner_grp, color=GREEN_A, buff=0.18, corner_radius=0.12, stroke_width=2.5
+    )
     scene.play(
         FadeOut(scan_rect),
         Create(win_rect),
         FadeIn(tick),
-        Flash(winner_grp.get_center(), color=GREEN_A,
-              flash_radius=0.8, line_length=0.25),
+        Flash(
+            winner_grp.get_center(), color=GREEN_A, flash_radius=0.8, line_length=0.25
+        ),
     )
     scene.wait(1.5)
 

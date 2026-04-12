@@ -20,7 +20,9 @@ def play_scene00_intro(scene):
         Text("Phan Bá Đức  - 22120071", font_size=24),
         Text("Đặng Duy Lân - 22120182", font_size=24),
     ).arrange(DOWN, aligned_edge=LEFT, buff=0.18)
-    members_group = VGroup(members_label, members).arrange(DOWN, buff=0.25, aligned_edge=LEFT)
+    members_group = VGroup(members_label, members).arrange(
+        DOWN, buff=0.25, aligned_edge=LEFT
+    )
     members_group.next_to(subtitle, DOWN, buff=0.55)
 
     members_box = SurroundingRectangle(

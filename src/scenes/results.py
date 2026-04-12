@@ -39,7 +39,9 @@ def play_scene17_results(scene):
     table1.add_highlighted_cell((1, 4), color=GOLD)
 
     callout1 = VGroup(
-        Text("+6.30% accuracy and -10.15% cost vs baselines", font_size=17, color=GREEN_A),
+        Text(
+            "+6.30% accuracy and -10.15% cost vs baselines", font_size=17, color=GREEN_A
+        ),
         Text("~41% cheaper than RouterDC", font_size=17, color=GREEN_A),
     ).arrange(DOWN, buff=0.10, aligned_edge=LEFT)
     callout1.next_to(table1, DOWN, buff=0.28)
@@ -53,7 +55,9 @@ def play_scene17_results(scene):
     # ══════════════════════════════════════════════════════════════════════
     scene.play(FadeOut(VGroup(act1_title, table1, callout1)), run_time=0.7)
 
-    act2_title = Text("Controllability Under Hard Constraints", font_size=20, color=YELLOW)
+    act2_title = Text(
+        "Controllability Under Hard Constraints", font_size=20, color=YELLOW
+    )
     act2_title.next_to(title, DOWN, buff=0.25)
 
     alpha = [0.7, 0.75, 0.8, 0.85, 0.9]
@@ -95,7 +99,9 @@ def play_scene17_results(scene):
                 dots.set_opacity(1.0)
                 styled_line = VGroup(base_curve, dots)
             else:
-                dashed_curve = DashedVMobject(base_curve.copy(), num_dashes=28, dashed_ratio=0.60)
+                dashed_curve = DashedVMobject(
+                    base_curve.copy(), num_dashes=28, dashed_ratio=0.60
+                )
                 dashed_curve.set_color(color).set_stroke(width=2.0, opacity=0.95)
                 dots.set_opacity(0.85)
                 styled_line = VGroup(dashed_curve, dots)
@@ -118,8 +124,12 @@ def play_scene17_results(scene):
         axis_config={"include_numbers": True, "font_size": 18},
     ).shift(RIGHT * 3.2 + DOWN * 0.12)
 
-    cost_labels = axes_cost.get_axis_labels(MathTex(r"\alpha").scale(0.65), Text("Cost ($)", font_size=16))
-    acc_labels = axes_acc.get_axis_labels(MathTex(r"\alpha").scale(0.65), Text("Accuracy (%)", font_size=16))
+    cost_labels = axes_cost.get_axis_labels(
+        MathTex(r"\alpha").scale(0.65), Text("Cost ($)", font_size=16)
+    )
+    acc_labels = axes_acc.get_axis_labels(
+        MathTex(r"\alpha").scale(0.65), Text("Accuracy (%)", font_size=16)
+    )
 
     cost_lines = styled_lines(axes_cost, cost_data, alpha)
     acc_lines = styled_lines(axes_acc, acc_data, alpha)
@@ -145,16 +155,31 @@ def play_scene17_results(scene):
     cap_b = Text("(b) Accuracy vs. Performance Constraint", font_size=18)
     cap_b.next_to(axes_acc, DOWN, buff=0.12)
 
-    scene.play(FadeIn(act2_title, shift=UP * 0.1), Create(axes_cost), Create(axes_acc), run_time=1.0)
+    scene.play(
+        FadeIn(act2_title, shift=UP * 0.1),
+        Create(axes_cost),
+        Create(axes_acc),
+        run_time=1.0,
+    )
     scene.play(FadeIn(cost_labels), FadeIn(acc_labels), run_time=0.5)
-    scene.play(LaggedStart(*[Create(l) for l in cost_lines], lag_ratio=0.12), run_time=1.2)
-    scene.play(LaggedStart(*[Create(l) for l in acc_lines], lag_ratio=0.12), run_time=1.2)
+    scene.play(
+        LaggedStart(*[Create(l) for l in cost_lines], lag_ratio=0.12), run_time=1.2
+    )
+    scene.play(
+        LaggedStart(*[Create(l) for l in acc_lines], lag_ratio=0.12), run_time=1.2
+    )
     scene.play(
         cost_lines[0][0].animate.set_stroke(width=6),
         acc_lines[0][0].animate.set_stroke(width=6),
         run_time=0.5,
     )
-    scene.play(FadeIn(legend_cost), FadeIn(legend_acc), FadeIn(cap_a), FadeIn(cap_b), run_time=0.6)
+    scene.play(
+        FadeIn(legend_cost),
+        FadeIn(legend_acc),
+        FadeIn(cap_a),
+        FadeIn(cap_b),
+        run_time=0.6,
+    )
     scene.wait(0.6)
 
     scene.play(
@@ -175,7 +200,9 @@ def play_scene17_results(scene):
         run_time=0.65,
     )
 
-    next_title = Text("Controllability Under Concurrency Constraint", font_size=20, color=YELLOW)
+    next_title = Text(
+        "Controllability Under Concurrency Constraint", font_size=20, color=YELLOW
+    )
     next_title.move_to(act2_title)
     scene.play(Transform(act2_title, next_title), run_time=0.35)
 
@@ -260,14 +287,24 @@ def play_scene17_results(scene):
         FadeIn(y_label_acc_l),
         run_time=0.45,
     )
-    scene.play(LaggedStart(*[Create(l) for l in cost_lines_l], lag_ratio=0.12), run_time=1.15)
-    scene.play(LaggedStart(*[Create(l) for l in acc_lines_l], lag_ratio=0.12), run_time=1.15)
+    scene.play(
+        LaggedStart(*[Create(l) for l in cost_lines_l], lag_ratio=0.12), run_time=1.15
+    )
+    scene.play(
+        LaggedStart(*[Create(l) for l in acc_lines_l], lag_ratio=0.12), run_time=1.15
+    )
     scene.play(
         cost_lines_l[0][0].animate.set_stroke(width=6),
         acc_lines_l[0][0].animate.set_stroke(width=6),
         run_time=0.45,
     )
-    scene.play(FadeIn(legend_cost_l), FadeIn(legend_acc_l), FadeIn(cap_c), FadeIn(cap_d), run_time=0.6)
+    scene.play(
+        FadeIn(legend_cost_l),
+        FadeIn(legend_acc_l),
+        FadeIn(cap_c),
+        FadeIn(cap_d),
+        run_time=0.6,
+    )
     scene.wait(1.0)
 
     # ══════════════════════════════════════════════════════════════════════
