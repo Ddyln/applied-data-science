@@ -28,7 +28,7 @@ class QueryCard(VGroup):
 # ---------------------------------------------------------------------------
 
 class ModelNode(VGroup):
-    def __init__(self, label: str, strength: str = "medium", **kwargs):
+    def __init__(self, label: str, strength: str = "medium", _width = 2.6, _height = 1.0, **kwargs):
         super().__init__(**kwargs)
         color_map = {
             "weak":   theme.MODEL_WEAK,
@@ -38,21 +38,20 @@ class ModelNode(VGroup):
         color = color_map.get(strength, theme.MODEL_MEDIUM)
 
         box = RoundedRectangle(
-            corner_radius=0.12, width=2.6, height=1.0,
+            corner_radius=0.12, width = _width, height = _height,
             color=color, stroke_width=2,
         )
-        name_text = Text(label, font_size=theme.LABEL_FONT_SIZE, weight=BOLD)
+        name_text = Text(label, font_size=theme.LABEL_FONT_SIZE, weight=BOLD, color=color)
         name_text.scale_to_fit_width(box.width - 0.3)
 
-        subtitle_map = {"strong": "Strong $$$", "medium": "Medium  $$", "weak": "Weak     $"}
+        subtitle_map = {"strong": "Strong $$$", "medium": "Medium $$", "weak": "Weak     $"}
         sub_text = Text(
             subtitle_map.get(strength, ""),
             font_size=theme.DESCRIPTION_FONT_SIZE,
             color=GREY_C,
         )
-    
-        sub_text.scale_to_fit_width(box.width - 0.4)
-        sub_text.set_opacity(0.95)
+        sub_text.scale_to_fit_width(box.width - 1)
+        sub_text.set_opacity(0.8)
 
         VGroup(name_text, sub_text).arrange(DOWN, buff=0.08).move_to(box.get_center())
 
@@ -61,10 +60,10 @@ class ModelNode(VGroup):
         self.name_text = name_text
         self.sub_text = sub_text
         self.strength = strength
-        self.color = color
+        # self.color = color
 
-    def get_strength_color(self):
-        return self.color
+    # def get_strength_color(self):
+    #     return self.color
 
 
 # ---------------------------------------------------------------------------

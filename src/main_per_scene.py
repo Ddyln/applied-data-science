@@ -39,9 +39,9 @@ class Scene01(Scene):
         play_scene01_hook_too_many_llms(self)
 
 
-# class Scene02(Scene):
-#     def construct(self):
-#         play_scene02_what_is_routing(self)
+class Scene02(Scene):
+    def construct(self):
+        play_scene02_what_is_routing(self)
 
 
 # class Scene03(Scene):
@@ -122,7 +122,7 @@ class Scene01(Scene):
 __all__ = [
     # "Scene00",
     "Scene01",
-    # "Scene02",
+    "Scene02",
     # "Scene03",
     # "Scene04",
     # "Scene05",

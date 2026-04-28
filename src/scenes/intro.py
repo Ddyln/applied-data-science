@@ -64,9 +64,6 @@ def _query_model_setup():
     models = make_model_column(["Small", "Large"], ["weak", "strong"])
     return query_title, model_title, queries, models
 
-
-SYSTEM_X  =  2.3   # horizontal centre of AI system container
-
 def play_scene01_hook_too_many_llms(scene: Scene):
     """
     Scene 1: Introduction to Multi-Model System
@@ -84,7 +81,7 @@ def play_scene01_hook_too_many_llms(scene: Scene):
     """
  
     system = AISystemContainer(width=9, height=6)
-    system.move_to(RIGHT * SYSTEM_X)
+    system.move_to(RIGHT * 2.3)
  
     scene.play(
         Create(system.container_box),
@@ -208,18 +205,164 @@ def play_scene01_hook_too_many_llms(scene: Scene):
     scene.wait(1.0)
 
 def play_scene02_what_is_routing(scene):
-    # title = Text("Routing", font_size=52).to_edge(UP)
-    query_title, model_title, queries, models = _query_model_setup()
-    arrows = VGroup(
-        connect(queries[0], models[0]),
-        connect(queries[1], models[1]),
+    """
+    Scene 2: What is Routing?
+    
+    Combines Scene 1 structure with 2 models and 2 queries.
+    Shows flow from queries through router to models.
+    """
+    
+    # Title
+    title = Text("What is Routing?", font_size=48, color=YELLOW).to_edge(UP)
+    scene.play(Write(title), run_time=1.2)
+    scene.wait(0.5)
+    
+    # ------------------------------------------------------------------
+    # AI System container + models (2: weak and strong)
+    # ------------------------------------------------------------------
+    system = AISystemContainer(width=9, height=4.0)
+    system.move_to(RIGHT * 2.3)
+    
+    scene.play(
+        Create(system.container_box),
+        FadeIn(system.system_label),
+        run_time=0.9,
     )
-    # scene.play(FadeIn(title), FadeIn(query_title), FadeIn(model_title))
-    scene.play(FadeIn(query_title), FadeIn(model_title))
-    scene.play(staggered_fade_in(*queries), staggered_fade_in(*models))
-    scene.wait(8)
-    scene.play(staggered_fade_in(*arrows))
-    scene.wait(7.5)
+    
+    router = RouterBox(label="Router")
+    router.move_to(ORIGIN)
+    
+    scene.play(GrowFromCenter(router))
+    scene.wait(0.8)
+
+    model_labels    = ["Small", "Large"]
+    model_strengths = ["weak", "strong"]
+    
+    models = VGroup(*[
+        ModelNode(lbl, strength=s, _height = 1.5)
+        for lbl, s in zip(model_labels, model_strengths)
+    ])
+    models.arrange(DOWN, buff=0.5)
+    models.move_to(system.container_box.get_center()).shift(RIGHT * 2.5)
+    
+    scene.play(staggered_fade_in(*models, lag_ratio=0.18, shift=UP * 0.2))
+    scene.wait(0.6)
+    
+    # ------------------------------------------------------------------
+    # 2 Queries: Easy and Hard
+    # ------------------------------------------------------------------
+    query_labels = ["Easy Query", "Hard Query"]
+    queries = VGroup(*[
+        QueryCard(lbl, hard=("Hard" in lbl))
+        for lbl in query_labels
+    ])
+    queries.arrange(DOWN, buff=0.5)
+    queries.to_edge(LEFT, buff=1.0)
+    
+    scene.play(staggered_fade_in(*queries, lag_ratio=0.2, shift=RIGHT * 0.2))
+    scene.wait(0.6)
+    
+    # ------------------------------------------------------------------
+    # Flow arrows: queries → router → models
+    # ------------------------------------------------------------------
+    # Queries → Router
+    q2r_arrows = VGroup(*[
+        Arrow(
+            queries[i].get_right(), router.get_left(),
+            buff=0.12, color=queries[i].box.color,
+            stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+        )
+        for i in range(len(queries))
+    ])
+    
+    # Router → Models
+    # Query 0 (easy) → Model 0 (small/weak)
+    # Query 1 (hard) → Model 1 (large/strong)
+    routing_mapping = [(0, 0), (1, 1)]
+    
+    r2m_arrows = VGroup(*[
+        Arrow(
+            router.get_right(), models[m_idx].get_left(),
+            buff=0.12, color=queries[q_idx].box.color,
+            stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+        )
+        for q_idx, m_idx in routing_mapping
+    ])
+    
+    # Draw arrows with stagger
+    scene.play(LaggedStart(
+        *[GrowArrow(a) for a in q2r_arrows],
+        lag_ratio=0.2, run_time=1.0,
+    ))
+    scene.wait(0.3)
+    
+    scene.play(LaggedStart(
+        *[GrowArrow(a) for a in r2m_arrows],
+        lag_ratio=0.2, run_time=1.0,
+    ))
+    scene.wait(0.8)
+    
+    # ------------------------------------------------------------------
+    # Explanation text
+    # ------------------------------------------------------------------
+    explanation = Text(
+        "Routing: assign queries to models optimally",
+        font_size=24, color=GREEN_B,
+    ).to_edge(DOWN, buff=0.6)
+    
+    scene.play(FadeIn(explanation, shift=UP * 0.2))
+    scene.wait(1.0)
+    
+    # ------------------------------------------------------------------
+    # Animated flow cycles (2 cycles)
+    # ------------------------------------------------------------------
+    def _flow_cycle():
+        # Phase A: packets query → router
+        phase_a_dots = [
+            Dot(radius=0.06, color=queries[i].box.color)
+               .move_to(q2r_arrows[i].get_start())
+            for i in range(len(queries))
+        ]
+        scene.add(*phase_a_dots)
+        scene.play(LaggedStart(
+            *[MoveAlongPath(d, q2r_arrows[i]) for i, d in enumerate(phase_a_dots)],
+            lag_ratio=0.2, run_time=0.9,
+        ))
+        scene.remove(*phase_a_dots)
+        
+        # Phase B: packets router → model
+        phase_b_dots = [
+            Dot(radius=0.06, color=queries[q_idx].box.color)
+               .move_to(r2m_arrows[k].get_start())
+            for k, (q_idx, _) in enumerate(routing_mapping)
+        ]
+        scene.add(*phase_b_dots)
+        scene.play(LaggedStart(
+            *[MoveAlongPath(d, r2m_arrows[k]) for k, d in enumerate(phase_b_dots)],
+            lag_ratio=0.2, run_time=0.9,
+        ))
+        scene.remove(*phase_b_dots)
+    
+    _flow_cycle()
+    scene.wait(0.3)
+    _flow_cycle()
+    scene.wait(0.6)
+    
+    # ------------------------------------------------------------------
+    # Persist state
+    # ------------------------------------------------------------------
+    scene._scene2_state = {
+        "title": title,
+        "system": system,
+        "models": models,
+        "queries": queries,
+        "router": router,
+        "q2r_arrows": q2r_arrows,
+        "r2m_arrows": r2m_arrows,
+        "explanation": explanation,
+    }
+    
+    scene.wait(1.5)
 
 
 def play_scene03_greedy_fails(scene):
