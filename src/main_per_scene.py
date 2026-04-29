@@ -34,9 +34,9 @@ from scenes.results import play_scene17_results, play_scene18_conclusion
 #         play_scene00_intro(self)
 
 
-class Scene01(Scene):
-    def construct(self):
-        play_scene01_hook_too_many_llms(self)
+# class Scene01(Scene):
+#     def construct(self):
+#         play_scene01_hook_too_many_llms(self)
 
 
 class Scene02(Scene):
@@ -121,7 +121,7 @@ class Scene02(Scene):
 
 __all__ = [
     # "Scene00",
-    "Scene01",
+    # "Scene01",
     "Scene02",
     # "Scene03",
     # "Scene04",

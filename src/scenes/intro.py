@@ -61,7 +61,7 @@ def _query_model_setup():
         Text("Available Models", font_size=LABEL_FONT_SIZE).to_edge(RIGHT).shift(UP * 2)
     )
     queries = make_query_column(["Easy: x^2 - 1 = 0", "Hard: Build Facebook!"])
-    models = make_model_column(["Small", "Large"], ["weak", "strong"])
+    models = make_model_column(["Small", "Large"], ["weak", "strong"], _height_box=1.0)
     return query_title, model_title, queries, models
 
 def play_scene01_hook_too_many_llms(scene: Scene):
@@ -216,7 +216,7 @@ def play_scene02_what_is_routing(scene):
     title = Text("What is Routing?", font_size=48, color=YELLOW).to_edge(UP)
     scene.play(Write(title), run_time=1.2)
     scene.wait(0.5)
-    
+    query_title, model_title, queries, models = _query_model_setup()
     # ------------------------------------------------------------------
     # AI System container + models (2: weak and strong)
     # ------------------------------------------------------------------
@@ -228,38 +228,53 @@ def play_scene02_what_is_routing(scene):
         FadeIn(system.system_label),
         run_time=0.9,
     )
-    
+
     router = RouterBox(label="Router")
     router.move_to(ORIGIN)
     
     scene.play(GrowFromCenter(router))
     scene.wait(0.8)
 
-    model_labels    = ["Small", "Large"]
-    model_strengths = ["weak", "strong"]
+    # model_labels    = ["Small", "Large"]
+    # model_strengths = ["weak", "strong"]
     
-    models = VGroup(*[
-        ModelNode(lbl, strength=s, _height = 1.5)
-        for lbl, s in zip(model_labels, model_strengths)
-    ])
+    # models = VGroup(*[
+    #     ModelNode(lbl, strength=s, _height_box = 1.5)
+    #     for lbl, s in zip(model_labels, model_strengths)
+    # ])
     models.arrange(DOWN, buff=0.5)
     models.move_to(system.container_box.get_center()).shift(RIGHT * 2.5)
     
     scene.play(staggered_fade_in(*models, lag_ratio=0.18, shift=UP * 0.2))
+    
+    # model_title.move_to(system.container_box.get_top() + UP * 0.5 + RIGHT * 2.6 )
+
+    # scene.play(
+    #     FadeIn(model_title),
+    #     model_title.animate.set_opacity(0.9)
+    # )
+
     scene.wait(0.6)
     
     # ------------------------------------------------------------------
     # 2 Queries: Easy and Hard
     # ------------------------------------------------------------------
-    query_labels = ["Easy Query", "Hard Query"]
-    queries = VGroup(*[
-        QueryCard(lbl, hard=("Hard" in lbl))
-        for lbl in query_labels
-    ])
+    # query_labels = ["Easy Query", "Hard Query"]
+    # queries = VGroup(*[
+    #     QueryCard(lbl, hard=("Hard" in lbl))
+    #     for lbl in query_labels
+    # ])
     queries.arrange(DOWN, buff=0.5)
     queries.to_edge(LEFT, buff=1.0)
     
     scene.play(staggered_fade_in(*queries, lag_ratio=0.2, shift=RIGHT * 0.2))
+
+    query_title.move_to(system.container_box.get_top() + UP * 0.5 + LEFT * 7 )
+
+    scene.play(
+        FadeIn(query_title),
+        query_title.animate.set_opacity(0.9)
+    )
     scene.wait(0.6)
     
     # ------------------------------------------------------------------
@@ -369,79 +384,149 @@ def play_scene03_greedy_fails(scene):
     title = Text("Problem with current routing strategy", font_size=52).to_edge(UP)
     subtitle = Text("Greedy Routing", font_size=32).next_to(title, DOWN)
     _, _, queries, models = _query_model_setup()
-    first_arrival = (
-        Text("Easy query arrives first", font_size=30).to_edge(DOWN).shift(UP * 0.6)
-    )
-    bad_assign_easy = connect(queries[0], models[1], good=False)
-    bad_assign_hard = connect(queries[1], models[0], good=False)
-    easy_arrow_note = (
-        Text("higher success chance", font_size=22, color=YELLOW)
-        .next_to(bad_assign_easy, UP)
-        .shift(RIGHT * 0.4)
-    )
-    easy_selection_note = (
-        Text(
-            "Greedy picks the model with higher success chance",
-            font_size=26,
-        )
-        .to_edge(DOWN)
-        .shift(UP * 1.0)
-    )
-    hard_selection_note = (
-        Text(
-            "Only small model left for difficult task :(",
-            font_size=26,
-        )
-        .to_edge(DOWN)
-        .shift(UP * 1.0)
-    )
+
+    # ------------------------------------------------------------------
+    # Shared layout: queries on the left, router in the middle,
+    # AI system + models on the right.
+    # ------------------------------------------------------------------
+    SHIFT_DOWN = DOWN * 0.2
+    system = AISystemContainer(width=9.0, height=3.0)
+    system.move_to(RIGHT * 2.3 + SHIFT_DOWN)
+
+    router = RouterBox(label="Router")
+    router.move_to(ORIGIN + SHIFT_DOWN)
+
+    models.arrange(DOWN, buff=0.5)
+    models.move_to(system.container_box.get_center()).shift(RIGHT * 2.1)
+
+    queries.arrange(DOWN, buff=0.5)
+    queries.to_edge(LEFT, buff=1.0).shift(SHIFT_DOWN)
+
+    first_arrival = Text(
+        "Easy query arrives first",
+        font_size=30,
+    ).to_edge(DOWN).shift(UP * 0.3)
+
+    easy_selection_note = Text(
+        "Greedy picks the model with higher success chance",
+        font_size=26,
+    ).to_edge(DOWN).shift(UP * 0.8)
+
+    hard_selection_note = Text(
+        "Only small model left for difficult task :(",
+        font_size=26,
+    ).to_edge(DOWN).shift(UP * 0.8)
+
+    easy_arrow_note = Text(
+        "Higher success chance",
+        font_size=22,
+        color=YELLOW,
+    ).next_to(router, UP).shift(RIGHT * 0.8)
+
     weakness = Text(
         "-> OmniRouter: constrained global optimization",
         font_size=24,
-        # color=YELLOW,
-    )
-    weakness.to_edge(DOWN).shift(UP * 0.8)
+    ).to_edge(DOWN).shift(UP * 0.3)
 
+    strong_idx = [i for i, mob in enumerate(models) if mob.strength == "strong"]
+
+    # ------------------------------------------------------------------
+    # Step 1: Introduce the whole system, router, and models.
+    # ------------------------------------------------------------------
     scene.play(FadeIn(title), FadeIn(subtitle))
-    scene.play(staggered_fade_in(*models))
-    scene.wait(3)
-    scene.play(staggered_fade_in(queries[0]))
-    scene.play(
-        Indicate(queries[0]),
-        # FadeIn(first_arrival),
-    )
-    scene.play(Indicate(models[1], color=YELLOW), FadeIn(easy_selection_note))
-    scene.wait(1.5)
-    scene.play(FadeIn(bad_assign_easy))
-    # scene.play(bad_assign_easy.animate.set_color(YELLOW), FadeIn(easy_arrow_note))
-    # scene.play(Indicate(bad_assign_easy, color=YELLOW))
-    scene.play(FadeOut(easy_selection_note))
-    scene.wait(1.5)
-    scene.play(staggered_fade_in(queries[1]))
-    scene.play(Indicate(queries[1]), FadeIn(hard_selection_note))
+    scene.play(Create(system.container_box), FadeIn(system.system_label))
+    scene.play(GrowFromCenter(router))
+    scene.play(staggered_fade_in(*models, lag_ratio=0.18, shift=UP * 0.15))
+    scene.wait(1.0)
+
+    # Emphasize the strong model box only, so subtitle text stays neutral.
+    scene.play(AnimationGroup(
+        *[Indicate(models[i].box, color=MODEL_STRONG, scale_factor=1.12) for i in strong_idx],
+        lag_ratio=0.2,
+        run_time=1.0,
+    ))
     scene.wait(0.5)
-    scene.play(FadeIn(bad_assign_hard))
-    scene.wait(10)
-    # scene.play(
-    #     FadeOut(hard_selection_note),
-    #     FadeOut(queries),
-    #     FadeOut(models),
-    #     FadeOut(bad_assign_easy),
-    #     FadeOut(bad_assign_hard),
-    # )
+
+    # ------------------------------------------------------------------
+    # Step 2: First query arrives and greedy routing chooses the strong model.
+    # ------------------------------------------------------------------
+    scene.play(staggered_fade_in(queries[0], shift=RIGHT * 0.25))
+    scene.play(FadeIn(first_arrival, shift=UP * 0.1))
+    scene.play(Indicate(queries[0]))
+
+    q0_to_router = Arrow(
+        queries[0].get_right(), router.get_left(),
+        buff=0.12, color=queries[0].box.color,
+        stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+    )
+    bad_assign_easy = Arrow(
+        router.get_right(), models[1].get_left(),
+        buff=0.12, color=queries[0].box.color,
+        stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+    )
+    easy_packet = Dot(radius=0.06, color=queries[0].box.color).move_to(q0_to_router.get_start())
+
+    scene.play(GrowArrow(q0_to_router))
+    scene.add(easy_packet)
+    scene.play(MoveAlongPath(easy_packet, q0_to_router))
+    scene.remove(easy_packet)
+
+    scene.play(Indicate(models[1].box, color=YELLOW, scale_factor=1.08), FadeIn(easy_selection_note))
+    scene.play(GrowArrow(bad_assign_easy), FadeIn(easy_arrow_note))
+    scene.wait(1.2)
+
+    scene.play(FadeOut(easy_selection_note), FadeOut(first_arrival), FadeOut(easy_arrow_note))
+
+    # ------------------------------------------------------------------
+    # Step 3: Second query arrives, but the remaining choice is poor.
+    # ------------------------------------------------------------------
+    scene.play(staggered_fade_in(queries[1], shift=RIGHT * 0.25))
+    scene.play(Indicate(queries[1]), FadeIn(hard_selection_note))
+
+    q1_to_router = Arrow(
+        queries[1].get_right(), router.get_left(),
+        buff=0.12, color=queries[1].box.color,
+        stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+    )
+    bad_assign_hard = Arrow(
+        router.get_right(), models[0].get_left(),
+        buff=0.12, color=queries[1].box.color,
+        stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+    )
+    hard_packet = Dot(radius=0.06, color=queries[1].box.color).move_to(q1_to_router.get_start())
+
+    scene.play(GrowArrow(q1_to_router))
+    scene.add(hard_packet)
+    scene.play(MoveAlongPath(hard_packet, q1_to_router))
+    scene.remove(hard_packet)
+
+    scene.play(GrowArrow(bad_assign_hard))
+    scene.wait(1.0)
+
+    # ------------------------------------------------------------------
+    # Step 4: Show the limitation of greedy routing.
+    # ------------------------------------------------------------------
     scene.play(FadeOut(hard_selection_note), FadeIn(weakness))
+    scene.play(
+        shake(models[1].box, intensity=0.06, n=5),
+        Indicate(models[1].box, color=RED_B, scale_factor=1.05),
+        run_time=0.9,
+    )
+    scene.wait(0.8)
 
     # Persist visible objects so Scene 4 can continue without tearing down/rebuilding.
     scene._scene3_state = {
         "title": title,
         "subtitle": subtitle,
+        "system": system,
+        "router": router,
         "queries": queries,
         "models": models,
         "bad_assign_easy": bad_assign_easy,
         "bad_assign_hard": bad_assign_hard,
         "weakness": weakness,
     }
-    scene.wait(10)
+    scene.wait(8)
 
 
 def play_scene04_omnirouter_idea(scene):

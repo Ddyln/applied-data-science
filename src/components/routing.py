@@ -9,11 +9,11 @@ from style import theme
 # ---------------------------------------------------------------------------
 
 class QueryCard(VGroup):
-    def __init__(self, label: str, hard: bool = False, **kwargs):
+    def __init__(self, label: str, hard: bool = False, _width=2.6, _height=0.85, **kwargs):
         super().__init__(**kwargs)
         color = theme.QUERY_HARD if hard else theme.QUERY_EASY
         box = RoundedRectangle(
-            corner_radius=0.12, width=2.6, height=0.85,
+            corner_radius=0.12, width=_width, height=_height,
             color=color, stroke_width=2,
         )
         text = Text(label, font_size=theme.LABEL_FONT_SIZE)
@@ -28,7 +28,7 @@ class QueryCard(VGroup):
 # ---------------------------------------------------------------------------
 
 class ModelNode(VGroup):
-    def __init__(self, label: str, strength: str = "medium", _width = 2.6, _height = 1.0, **kwargs):
+    def __init__(self, label: str, strength: str = "medium", _width_box = 2.6, _height_box = 1.0, font_size = theme.LABEL_FONT_SIZE, **kwargs):
         super().__init__(**kwargs)
         color_map = {
             "weak":   theme.MODEL_WEAK,
@@ -38,11 +38,11 @@ class ModelNode(VGroup):
         color = color_map.get(strength, theme.MODEL_MEDIUM)
 
         box = RoundedRectangle(
-            corner_radius=0.12, width = _width, height = _height,
+            corner_radius=0.12, width = _width_box, height = _height_box,
             color=color, stroke_width=2,
         )
-        name_text = Text(label, font_size=theme.LABEL_FONT_SIZE, weight=BOLD, color=color)
-        name_text.scale_to_fit_width(box.width - 0.3)
+        name_text = Text(label, font_size=font_size, weight=BOLD, color=color)
+        # name_text.scale_to_fit_width(box.width - 0.3)
 
         subtitle_map = {"strong": "Strong $$$", "medium": "Medium $$", "weak": "Weak     $"}
         sub_text = Text(
@@ -50,8 +50,8 @@ class ModelNode(VGroup):
             font_size=theme.DESCRIPTION_FONT_SIZE,
             color=GREY_C,
         )
-        sub_text.scale_to_fit_width(box.width - 1)
-        sub_text.set_opacity(0.8)
+        # sub_text.scale_to_fit_width(box.width - 1)
+        sub_text.set_opacity(0.95)
 
         VGroup(name_text, sub_text).arrange(DOWN, buff=0.08).move_to(box.get_center())
 
@@ -125,9 +125,9 @@ def make_query_column(labels):
     return cards
 
 
-def make_model_column(labels, strengths):
+def make_model_column(labels, strengths, _height_box=1.0, font_size = theme.LABEL_FONT_SIZE):
     nodes = VGroup(*[
-        ModelNode(label, strength=strength)
+        ModelNode(label, strength=strength, _height_box=_height_box, font_size = font_size)
         for label, strength in zip(labels, strengths)
     ])
     nodes.arrange(DOWN, buff=0.45)
