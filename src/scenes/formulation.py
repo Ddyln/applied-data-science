@@ -53,16 +53,18 @@ def play_scene05_problem_formulation(scene):
     st_label.shift(LEFT * 2)
 
     tag_objective = Text("Minimize total routing cost", font_size=28, color=YELLOW)
-    tag_objective.next_to(objective, RIGHT, buff=0.35)
+    tag_objective.next_to(objective, RIGHT, buff=0.35).shift(RIGHT * 0.3)
+    
     tag_c1 = Text("One model per query", font_size=25, color=BLUE_B).next_to(
         c1, RIGHT, buff=0.35
-    )
+    ).shift(RIGHT * 1.0)
+
     tag_c2 = Text("Global quality target", font_size=25, color=GREEN_B).next_to(
         c2, RIGHT, buff=0.35
     )
     tag_c3 = Text("Model concurrency limit", font_size=25, color=ORANGE).next_to(
         c3, RIGHT, buff=0.35
-    )
+    ).shift(RIGHT * 0.8)
 
     def focus_formula(formula, color, repeats=2):
         box = SurroundingRectangle(formula, color=color, buff=0.12, stroke_width=4)

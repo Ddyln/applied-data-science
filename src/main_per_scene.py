@@ -49,14 +49,14 @@ from scenes.results import play_scene17_results, play_scene18_conclusion
 #         play_scene03_greedy_fails(self)
 
 
-class Scene04(Scene):
-    def construct(self):
-        play_scene04_omnirouter_idea(self)
-
-
-# class Scene05(Scene):
+# class Scene04(Scene):
 #     def construct(self):
-#         play_scene05_problem_formulation(self)
+#         play_scene04_omnirouter_idea(self)
+
+
+class Scene05(Scene):
+    def construct(self):
+        play_scene05_problem_formulation(self)
 
 
 # class Scene06(Scene):
@@ -124,8 +124,8 @@ __all__ = [
     # "Scene01",
     # "Scene02",
     # "Scene03",
-    "Scene04",
-    # "Scene05",
+    # "Scene04",
+    "Scene05",
     # "Scene06",
     # "Scene08",
     # "Scene09",
