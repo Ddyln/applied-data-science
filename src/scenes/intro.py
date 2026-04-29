@@ -532,10 +532,16 @@ def play_scene03_greedy_fails(scene):
 def play_scene04_omnirouter_idea(scene):
     state = getattr(scene, "_scene3_state", None)
     subtitle = None
+    system = None
+    router = None
+    q2r_arrows = None
 
     if state:
+        # Reuse Scene 03 objects to preserve continuity.
         title = state["title"]
         subtitle = state["subtitle"]
+        system = state.get("system")
+        router = state.get("router")
         queries = state["queries"]
         models = state["models"]
         bad_assign_easy = state["bad_assign_easy"]
@@ -543,17 +549,76 @@ def play_scene04_omnirouter_idea(scene):
         weakness = state["weakness"]
         scene.play(FadeOut(weakness))
     else:
+        # Fallback layout mirrors Scene 03 visual language.
+        shift_down = DOWN * 0.2
         title = Text("Optimize Globally", font_size=52).to_edge(UP)
-        queries = make_query_column(["Easy Query", "Hard Query"])
-        models = make_model_column(["Weak Model", "Strong Model"], ["weak", "strong"])
-        bad_assign_easy = connect(queries[0], models[1], good=False)
-        bad_assign_hard = connect(queries[1], models[0], good=False)
-        scene.play(FadeIn(title))
-        scene.play(staggered_fade_in(*queries), staggered_fade_in(*models))
+        subtitle = Text("From Greedy to Global", font_size=32).next_to(title, DOWN)
+
+        system = AISystemContainer(width=9.0, height=3.0)
+        system.move_to(RIGHT * 2.3 + shift_down)
+
+        router = RouterBox(label="Router")
+        router.move_to(ORIGIN + shift_down)
+
+        # queries = make_query_column(["Easy: x^2 - 1 = 0", "Hard: Build Facebook!"])
+        # models = make_model_column(["Small", "Large"], ["weak", "strong"], _height_box=1.0)
+
+        queries = make_query_column(["Easy: x^2 - 1 = 0", "Hard: Build Facebook!"])
+        queries.arrange(DOWN, buff=0.5)
+        queries.to_edge(LEFT, buff=1.0).shift(shift_down)
+
+        models = make_model_column(["Small", "Large"], ["weak", "strong"])
+        models.arrange(DOWN, buff=0.5)
+        models.move_to(system.container_box.get_center()).shift(RIGHT * 2.1)
+
+        q2r_arrows = VGroup(
+            Arrow(
+                queries[0].get_right(), router.get_left(),
+                buff=0.12, color=queries[0].box.color,
+                stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+            ),
+            Arrow(
+                queries[1].get_right(), router.get_left(),
+                buff=0.12, color=queries[1].box.color,
+                stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+            ),
+        )
+
+        bad_assign_easy = Arrow(
+            router.get_right(), models[1].get_left(),
+            buff=0.12, color=queries[0].box.color,
+            stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+        )
+        bad_assign_hard = Arrow(
+            router.get_right(), models[0].get_left(),
+            buff=0.12, color=queries[1].box.color,
+            stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+        )
+
+        scene.play(FadeIn(title), FadeIn(subtitle))
+        scene.play(Create(system.container_box), FadeIn(system.system_label))
+        scene.play(GrowFromCenter(router))
+        scene.play(staggered_fade_in(*models, lag_ratio=0.18, shift=UP * 0.15))
+        scene.play(staggered_fade_in(*queries, lag_ratio=0.18, shift=RIGHT * 0.15))
+        scene.play(LaggedStart(*[GrowArrow(a) for a in q2r_arrows], lag_ratio=0.2))
         scene.play(FadeIn(bad_assign_easy), FadeIn(bad_assign_hard))
 
-    good_assign_easy = connect(queries[0], models[0], good=True)
-    good_assign_hard = connect(queries[1], models[1], good=True)
+    # Keep original scene logic: replace bad assignment with globally good assignment.
+    if router is not None:
+        good_assign_easy = Arrow(
+            router.get_right(), models[0].get_left(),
+            buff=0.12, color=queries[0].box.color,
+            stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+        )
+        good_assign_hard = Arrow(
+            router.get_right(), models[1].get_left(),
+            buff=0.12, color=queries[1].box.color,
+            stroke_width=2.5, max_tip_length_to_length_ratio=0.12,
+        )
+    else:
+        good_assign_easy = connect(queries[0], models[0], good=True)
+        good_assign_hard = connect(queries[1], models[1], good=True)
+
     transition_note = (
         Text(
             "Plan jointly across all queries under constraints",
@@ -581,6 +646,9 @@ def play_scene04_omnirouter_idea(scene):
     focus_items = [
         title,
         subtitle,
+        system,
+        router,
+        q2r_arrows,
         queries,
         models,
         good_assign_easy,

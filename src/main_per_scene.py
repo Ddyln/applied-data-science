@@ -39,9 +39,9 @@ from scenes.results import play_scene17_results, play_scene18_conclusion
 #         play_scene01_hook_too_many_llms(self)
 
 
-class Scene02(Scene):
-    def construct(self):
-        play_scene02_what_is_routing(self)
+# class Scene02(Scene):
+#     def construct(self):
+#         play_scene02_what_is_routing(self)
 
 
 # class Scene03(Scene):
@@ -49,9 +49,9 @@ class Scene02(Scene):
 #         play_scene03_greedy_fails(self)
 
 
-# class Scene04(Scene):
-#     def construct(self):
-#         play_scene04_omnirouter_idea(self)
+class Scene04(Scene):
+    def construct(self):
+        play_scene04_omnirouter_idea(self)
 
 
 # class Scene05(Scene):
@@ -122,9 +122,9 @@ class Scene02(Scene):
 __all__ = [
     # "Scene00",
     # "Scene01",
-    "Scene02",
+    # "Scene02",
     # "Scene03",
-    # "Scene04",
+    "Scene04",
     # "Scene05",
     # "Scene06",
     # "Scene08",
