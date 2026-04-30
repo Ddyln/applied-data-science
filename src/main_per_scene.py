@@ -54,14 +54,14 @@ from scenes.results import play_scene17_results, play_scene18_conclusion
 #         play_scene04_omnirouter_idea(self)
 
 
-class Scene05(Scene):
-    def construct(self):
-        play_scene05_problem_formulation(self)
-
-
-# class Scene06(Scene):
+# class Scene05(Scene):
 #     def construct(self):
-#         play_scene06_two_stage_framework(self)
+#         play_scene05_problem_formulation(self)
+
+
+class Scene06(Scene):
+    def construct(self):
+        play_scene06_two_stage_framework(self)
 
 
 # class Scene08(Scene):
@@ -125,8 +125,8 @@ __all__ = [
     # "Scene02",
     # "Scene03",
     # "Scene04",
-    "Scene05",
-    # "Scene06",
+    # "Scene05",
+    "Scene06",
     # "Scene08",
     # "Scene09",
     # "Scene10",
