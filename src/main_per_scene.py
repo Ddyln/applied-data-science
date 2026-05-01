@@ -59,9 +59,9 @@ from scenes.results import play_scene17_results, play_scene18_conclusion
 #         play_scene05_problem_formulation(self)
 
 
-class Scene06(Scene):
-    def construct(self):
-        play_scene06_two_stage_framework(self)
+# class Scene06(Scene):
+#     def construct(self):
+#         play_scene06_two_stage_framework(self)
 
 
 # class Scene08(Scene):
@@ -94,9 +94,9 @@ class Scene06(Scene):
 #         play_scene13_optimality_condition(self)
 
 
-# class Scene14(Scene):
-#     def construct(self):
-#         play_scene14_decision_rule(self)
+class Scene14(Scene):
+    def construct(self):
+        play_scene14_decision_rule(self)
 
 
 # class Scene15(Scene):
@@ -126,14 +126,14 @@ __all__ = [
     # "Scene03",
     # "Scene04",
     # "Scene05",
-    "Scene06",
+    # "Scene06",
     # "Scene08",
     # "Scene09",
     # "Scene10",
     # "Scene11",
     # "Scene12",
     # "Scene13",
-    # "Scene14",
+    "Scene14",
     # "Scene15",
     # "Scene16",
     # "Scene17",

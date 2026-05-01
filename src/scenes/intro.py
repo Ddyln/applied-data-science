@@ -424,7 +424,7 @@ def play_scene03_greedy_fails(scene):
     ).next_to(router, UP).shift(RIGHT * 0.8)
 
     weakness = Text(
-        "-> OmniRouter: constrained global optimization",
+        "→ OmniRouter: constrained global optimization",
         font_size=24,
     ).to_edge(DOWN).shift(UP * 0.3)
 
@@ -629,7 +629,7 @@ def play_scene04_omnirouter_idea(scene):
         .shift(UP * 0.9)
     )
     message = Text(
-        "-> Joint assignment improves overall success", font_size=28
+        "→ Joint assignment improves overall success", font_size=28
     ).to_edge(DOWN)
     punchline = Text("But... how does it actually work?!", font_size=42, color=WHITE)
 

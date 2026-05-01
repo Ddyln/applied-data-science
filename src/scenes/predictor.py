@@ -4,7 +4,7 @@ from manim import *
 
 from components import vector_strip, text_box
 import formulas
-
+from utils.navigator_bar import make_nav_bar
 
 def play_scene08_capability_prediction(scene):
     # ══════════════════════════════════════════════════════════════════════
@@ -14,6 +14,13 @@ def play_scene08_capability_prediction(scene):
     formula = formulas.capability_prediction().move_to(ORIGIN)
 
     scene.play(FadeIn(title, shift=DOWN * 0.2))
+    
+    # ── Add Navigator Bar (highlight tab 1: Training/Prediction) ────
+    nav_line = Line([-7.00, -3.10, 0], [7.00, -3.10, 0],
+                    stroke_width=0.7, color=GREY_B, stroke_opacity=0.55)
+    nav_bar  = make_nav_bar(active_idx=1)
+    scene.play(Create(nav_line), FadeIn(nav_bar), run_time=0.5)
+    
     scene.play(Write(formula), run_time=2.2)
     scene.wait(2.0)
 
@@ -256,8 +263,16 @@ def play_scene09_length_prediction(scene):
     pred_annot.next_to(formula[0], DOWN, buff=0.18)
 
     scene.play(FadeIn(title, shift=DOWN * 0.2))
+     
+    # ── Add Navigator Bar (highlight tab 1: Training/Prediction) ────
+    nav_line = Line([-7.00, -3.10, 0], [7.00, -3.10, 0],
+                    stroke_width=0.7, color=GREY_B, stroke_opacity=0.55)
+    nav_bar  = make_nav_bar(active_idx=1)
+    scene.play(Create(nav_line), FadeIn(nav_bar), run_time=0.5)
+    
     scene.play(Write(formula), run_time=2.2)
     scene.play(FadeIn(pred_annot, shift=UP * 0.1))
+    
     scene.wait(1.5)
 
     # ══════════════════════════════════════════════════════════════════════
@@ -535,6 +550,12 @@ def play_scene10_retrieval_augmentation(scene):
     title = Text("Retrieval Augmentation", font_size=42).to_edge(UP, buff=0.45)
     scene.play(FadeIn(title, shift=DOWN * 0.2))
 
+    # ── Add Navigator Bar (highlight tab 1: Training/Prediction) ────
+    nav_line = Line([-7.00, -3.10, 0], [7.00, -3.10, 0],
+                    stroke_width=0.7, color=GREY_B, stroke_opacity=0.55)
+    nav_bar  = make_nav_bar(active_idx=0)
+    scene.play(Create(nav_line), FadeIn(nav_bar), run_time=0.5)
+
     rng = np.random.default_rng(7)
     bg_coords = [(rng.uniform(-5.5, 5.5), rng.uniform(-2.8, 1.6)) for _ in range(38)]
 
@@ -739,6 +760,13 @@ def play_scene11_fusion(scene):
     # ══════════════════════════════════════════════════════════════════════
     title = Text("Fusion", font_size=42).to_edge(UP, buff=0.45)
     scene.play(FadeIn(title, shift=DOWN * 0.2))
+
+    # ── Add Navigator Bar (highlight tab 1: Training/Prediction) ────
+    nav_line = Line([-7.00, -3.10, 0], [7.00, -3.10, 0],
+                    stroke_width=0.7, color=GREY_B, stroke_opacity=0.55)
+    nav_bar  = make_nav_bar(active_idx=2)
+    scene.play(Create(nav_line), FadeIn(nav_bar), run_time=0.5)
+
 
     # ── Left column: Neural Net (prediction) ─────────────────────────────
     nn_icon = RoundedRectangle(

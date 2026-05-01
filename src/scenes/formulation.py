@@ -127,7 +127,7 @@ GREY_B            = "#555550"
 GREY_A            = "#9C9A92"
  
 NAV_COLORS  = [PURPLE, ORANGE, BLUE_B, GOLD_B]
-NAV_LABELS  = ["① Retrieval", "② Training", "③ Fusion", "④ Optimizer"]
+NAV_LABELS  = ["① Retrieval", "② Prediction", "③ Fusion", "④ Optimizer"]
 NAV_DIM_BG  = "#2E2E2B"
 NAV_DIM_TXT = "#6A6A62"
  
@@ -605,8 +605,8 @@ def play_scene06_two_stage_framework(scene):
  
     highlight_data = [
         (0, retrieval_grp, "① Retrieval-based  —  Vector DB, Average Top-K",  PURPLE),
-        (1, training_grp,  "② Training-based  —  Sigmoid (a) & Softmax (c)",  ORANGE),
-        (2, fusion_all,    "③ Fusion  —  VDB scores fuse với pred outputs",   BLUE_B),
+        (1, training_grp,  "② Prediction-based  —  Sigmoid (a) & Softmax (c)",  ORANGE),
+        (2, fusion_all,    "③ Fusion  —  VDB scores fuse with prediction outputs",   BLUE_B),
         (3, optimizer_grp, "④ Optimizer  —  Lagrangian Dual → Model Indexes", GOLD_B),
     ]
  

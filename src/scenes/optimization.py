@@ -4,6 +4,7 @@ from manim import *
 
 import formulas
 
+from utils.navigator_bar import make_nav_bar
 
 def play_scene12_lagrangian(scene):
     # ══════════════════════════════════════════════════════════════════════
@@ -19,6 +20,13 @@ def play_scene12_lagrangian(scene):
     ).move_to(ORIGIN)
 
     scene.play(FadeIn(title, shift=DOWN * 0.2))
+        
+    # ── Add Navigator Bar (highlight tab 1: Training/Prediction) ────
+    nav_line = Line([-7.00, -3.10, 0], [7.00, -3.10, 0],
+                    stroke_width=0.7, color=GREY_B, stroke_opacity=0.55)
+    nav_bar  = make_nav_bar(active_idx=3)
+    scene.play(Create(nav_line), FadeIn(nav_bar), run_time=0.5)
+
     scene.play(Write(obj), run_time=1.2)
     scene.wait(0.5)
 
@@ -260,6 +268,12 @@ def play_scene13_optimality_condition(scene):
     title = Text("Optimality Condition (KKT)", font_size=38).to_edge(UP, buff=0.45)
     scene.play(FadeIn(title, shift=DOWN * 0.2))
 
+    # ── Add Navigator Bar (highlight tab 1: Training/Prediction) ────
+    nav_line = Line([-7.00, -3.10, 0], [7.00, -3.10, 0],
+                    stroke_width=0.7, color=GREY_B, stroke_opacity=0.55)
+    nav_bar  = make_nav_bar(active_idx=3)
+    scene.play(Create(nav_line), FadeIn(nav_bar), run_time=0.5)
+
     # ── Lagrangian (left column) ──────────────────────────────────────────
     line0 = MathTex(
         r"\mathcal{L}(x,\lambda_1,\lambda_2,\mu)",
@@ -490,6 +504,13 @@ def play_scene14_decision_rule(scene):
     title = Text("Decision Rule  &  Dual Function", font_size=36).to_edge(UP, buff=0.45)
     scene.play(FadeIn(title, shift=DOWN * 0.2))
 
+    # ── Add Navigator Bar (highlight tab 1: Training/Prediction) ────
+    nav_line = Line([-7.00, -3.10, 0], [7.00, -3.10, 0],
+                    stroke_width=0.7, color=GREY_B, stroke_opacity=0.55)
+    nav_bar  = make_nav_bar(active_idx=3)
+    scene.play(Create(nav_line), FadeIn(nav_bar), run_time=0.5)
+
+
     # Two equations — same colour coding as scene 13
     eq_j = MathTex(
         r"c_{i,j}",  # [0] GOLD
@@ -621,7 +642,7 @@ def play_scene14_decision_rule(scene):
     # ══════════════════════════════════════════════════════════════════════
     # Clear annotations, shrink rule to top-left corner
     scene.play(
-        *[FadeOut(m) for m in scene.mobjects if m not in [title, rule]],
+        *[FadeOut(m) for m in scene.mobjects if m not in [title, rule, nav_line, nav_bar]],
         rule.animate.scale(0.52).to_corner(UL, buff=0.55).shift(DOWN * 0.5),
         run_time=0.8,
     )
@@ -671,6 +692,13 @@ def play_scene15_dual_updates(scene):
     # ══════════════════════════════════════════════════════════════════════
     title = Text("Dual Updates  (Gradient Ascent)", font_size=38).to_edge(UP, buff=0.45)
     scene.play(FadeIn(title, shift=DOWN * 0.2))
+
+    # ── Add Navigator Bar (highlight tab 1: Training/Prediction) ────
+    nav_line = Line([-7.00, -3.10, 0], [7.00, -3.10, 0],
+                    stroke_width=0.7, color=GREY_B, stroke_opacity=0.55)
+    nav_bar  = make_nav_bar(active_idx=3)
+    scene.play(Create(nav_line), FadeIn(nav_bar), run_time=0.5)
+
 
     # Iterative time display  t = 0 → 1 → 2 → …
     t_label = MathTex(r"t = 0", font_size=44, color=YELLOW).move_to(ORIGIN)
