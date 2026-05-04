@@ -6,4 +6,6 @@ dependencies:
   - manim
   - black
   - setuptools=81.0.0
-  - manim-voiceover[azure,gtts]
+  - pip
+  - pip:
+      - manim-voiceover[azure,gtts]

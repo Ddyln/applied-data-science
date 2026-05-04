@@ -3,7 +3,7 @@ from manim import *
 
 # ── Small grid icons (embedding columns) beside encoder ───────────────
 def mini_grid(
-    rows=4, cols=4, cell=0.13, edge_color=GREY_A, fill_color=None, opacity=None
+    rows=3, cols=3, cell=0.13, edge_color=GREY_A, fill_color=None, opacity=None
 ):
     g = VGroup()
     for r in range(rows):

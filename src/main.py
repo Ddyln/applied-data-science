@@ -67,3 +67,12 @@ class OmniRouter(Scene):
 
 
 __all__ = ["OmniRouter"]
+
+# class Scene00(Scene):
+#     """Render only intro scene 00 for quick preview/testing."""
+
+#     def construct(self):
+#         play_scene00_intro(self)
+
+
+# __all__ = ["OmniRouter", "Scene00"]
